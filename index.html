@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexus Omni-Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+        background-color: #000000;
+        color: #e4e4e7;
+        background-image: radial-gradient(circle at 50% 50%, #18181b 0%, #000000 100%);
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      
+      /* Advanced Animations */
+      @keyframes scanline {
+        0% { transform: translateY(-100%); opacity: 0; }
+        10% { opacity: 0.3; }
+        90% { opacity: 0.3; }
+        100% { transform: translateY(100vh); opacity: 0; }
+      }
+      .scanline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.15), transparent);
+        animation: scanline 4s linear infinite;
+        pointer-events: none;
+        z-index: 50;
+      }
+
+      @keyframes pulse-glow {
+        0%, 100% { opacity: 0.6; box-shadow: 0 0 5px rgba(16, 185, 129, 0.1); }
+        50% { opacity: 1; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+      }
+      
+      @keyframes pulse-crit {
+        0%, 100% { opacity: 0.8; box-shadow: 0 0 8px rgba(99, 102, 241, 0.2); transform: scale(1); }
+        50% { opacity: 1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); transform: scale(1.02); }
+      }
+
+      .node-worker-active {
+        animation: pulse-glow 0.8s infinite ease-in-out;
+      }
+      
+      .node-reviewer-active {
+        animation: pulse-crit 1.5s infinite ease-in-out;
+      }
+
+      .grid-bg {
+        background-size: 30px 30px;
+        background-image:
+          linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      }
+
+      /* Glitch text effect for titles */
+      .glitch-text:hover {
+        animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        color: #10b981;
+      }
+      @keyframes glitch {
+        0% { transform: translate(0) }
+        20% { transform: translate(-2px, 2px) }
+        40% { transform: translate(-2px, -2px) }
+        60% { transform: translate(2px, 2px) }
+        80% { transform: translate(2px, -2px) }
+        100% { transform: translate(0) }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root" class="h-full"></div>
+    <div class="scanline"></div>
+  </body>
+</html>
