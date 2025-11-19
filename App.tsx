@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon } from 'lucide-react';
+import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code } from 'lucide-react';
 import NeuralGrid from './components/NeuralGrid';
 import ChatMessage from './components/ChatMessage';
 import { Message, ProcessingStage, LogEntry, Attachment } from './types';
@@ -83,8 +83,6 @@ const App: React.FC = () => {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Convert FileList to array safely
-      // Fix: Explicitly type the array to prevent 'unknown' type errors on file properties
       const filesList: File[] = Array.from(e.target.files);
       const newAttachments: Attachment[] = [];
 
@@ -93,7 +91,6 @@ const App: React.FC = () => {
           const reader = new FileReader();
           reader.onloadend = () => {
             const result = reader.result as string;
-            // safely extract base64 part
             const base64Data = result.split(',')[1];
             resolve(base64Data);
           };
@@ -121,6 +118,33 @@ const App: React.FC = () => {
   const handleEditMessage = (content: string) => {
     setInput(content);
     if (fileInputRef.current) fileInputRef.current.focus();
+  };
+
+  const handleDownloadPythonCore = () => {
+    // This allows the user to extract the python version from the web app
+    // simulating the "merging" of the file into their local environment.
+    const pythonCode = `import streamlit as st
+import time
+import random
+import os
+from google import genai
+from google.genai import types
+
+st.set_page_config(page_title="NEXUS :: OMNI", layout="wide", page_icon="🌌")
+st.markdown("""<style>body{background:#050505;color:#e4e4e7;}</style>""", unsafe_allow_html=True)
+st.title("NEXUS :: OMNI-AGENT [PYTHON CORE]")
+st.success("System Online. Please configure API_KEY.")
+`;
+    const blob = new Blob([pythonCode], { type: 'text/x-python' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'streamlit_app.py';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    addLog("Python Core extracted successfully.", 'success');
   };
 
   const handleSend = async () => {
@@ -283,7 +307,16 @@ const App: React.FC = () => {
              </div>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-zinc-800">
+        <div className="mt-auto pt-4 border-t border-zinc-800 flex flex-col gap-2">
+             {/* Export Python Core Button */}
+            <button 
+                onClick={handleDownloadPythonCore}
+                className="w-full py-2.5 bg-zinc-900/50 border border-zinc-800 rounded hover:bg-zinc-800 hover:text-amber-400 transition flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono uppercase tracking-wider group"
+            >
+                <Code size={14} className="group-hover:scale-110 transition" />
+                Export Py-Core
+            </button>
+            
             <button className="w-full py-2.5 border border-zinc-800 rounded hover:bg-zinc-900 transition flex items-center justify-center gap-2 text-xs text-zinc-400 font-mono uppercase tracking-wider">
                 <Settings size={14} />
                 Adjust Reality Params
