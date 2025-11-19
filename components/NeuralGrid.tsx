@@ -1,251 +1,310 @@
+
 import React, { useEffect, useState } from 'react';
 import { NodeStatus, ProcessingStage } from '../types';
-import { Cpu, ShieldCheck, Zap, Activity, Brain, Server, Lock, Share2 } from 'lucide-react';
+import { Cpu, ShieldCheck, Zap, Brain, Database, Activity, Code, Globe, Layers, Feather, PenTool, BookOpen, Flame, Ghost, Sparkles, Eye, Sun, Infinity, Users, Heart, Lightbulb } from 'lucide-react';
 
 interface NeuralGridProps {
   stage: ProcessingStage;
 }
 
-const SPECIALIZATIONS = [
-  "تحليل منطقي", "رياضيات متقدمة", "تفكير إبداعي", "بحث واسترجاع", "بنية برمجية", "أمن المعلومات", 
-  "سياق تاريخي", "نمذجة فيزيائية", "لغويات ودلالة", "تحليل بيانات", "تخطيط استراتيجي", "سلوك معرفي",
-  "علوم طبية", "تصميم هندسي", "فنون بصرية", "اقتصاد كلي", "منطق فلسفي", "أنظمة حيوية",
-  "كيمياء تحليلية", "علوم فضاء", "تشريع وقانون", "بيداغوجيا", "سلوك سوق", "إدارة موارد",
-  "نظريات موسيقية", "سيناريو", "أداء رياضي", "مستقبل تقني", "استدامة بيئية", "طاقة بديلة"
+// 30 Logic Nodes (Left Hemisphere)
+const LOGIC_SPECIALIZATIONS = [
+  { name: "المنطق الرياضي", icon: <Cpu size={8} /> },
+  { name: "اتساق الحبكة", icon: <Layers size={8} /> },
+  { name: "التسلسل الزمني", icon: <Activity size={8} /> },
+  { name: "قوانين السحر", icon: <ShieldCheck size={8} /> },
+  { name: "الاقتصاد العالمي", icon: <Database size={8} /> },
+  { name: "الجغرافيا السياسية", icon: <Globe size={8} /> },
+  { name: "الطب الشرعي", icon: <Activity size={8} /> },
+  { name: "الاستراتيجية العسكرية", icon: <ShieldCheck size={8} /> },
+  { name: "علم النفس السلوكي", icon: <Brain size={8} /> },
+  { name: "الفيزياء النظرية", icon: <Cpu size={8} /> },
+  { name: "تحليل البيانات", icon: <Code size={8} /> },
+  { name: "بناء الأنظمة", icon: <Layers size={8} /> },
+  { name: "التاريخ المقارن", icon: <Globe size={8} /> },
+  { name: "علم الاجتماع", icon: <Brain size={8} /> },
+  { name: "المنطق الاستنتاجي", icon: <Cpu size={8} /> },
+  { name: "إدارة الموارد", icon: <Database size={8} /> },
+  { name: "الغموض والتحقيق", icon: <Eye size={8} /> },
+  { name: "الترابط السببي", icon: <Layers size={8} /> },
+  { name: "اللغويات الهيكلية", icon: <Code size={8} /> },
+  { name: "الأساطير والحقائق", icon: <BookOpen size={8} /> },
+  { name: "تحليل المخاطر", icon: <ShieldCheck size={8} /> },
+  { name: "الهندسة المعمارية", icon: <Activity size={8} /> },
+  { name: "بيولوجيا المخلوقات", icon: <Activity size={8} /> },
+  { name: "القانون والعدالة", icon: <ShieldCheck size={8} /> },
+  { name: "الفلك والنجوم", icon: <Globe size={8} /> },
+  { name: "الخيمياء", icon: <Zap size={8} /> },
+  { name: "التشفير والرموز", icon: <Code size={8} /> },
+  { name: "شبكات العلاقات", icon: <Layers size={8} /> },
+  { name: "المنطق الفلسفي", icon: <Brain size={8} /> },
+  { name: "التكتيكات القتالية", icon: <ShieldCheck size={8} /> },
+];
+
+// 10 Consciousness Nodes (Central Golden Core)
+const CONSCIOUSNESS_SPECIALIZATIONS = [
+    { name: "الوعي الجمعي", icon: <Users size={8} /> },
+    { name: "الذاكرة الضمنية", icon: <Infinity size={8} /> },
+    { name: "النماذج العليا (Jung)", icon: <Sun size={8} /> },
+    { name: "العفوية والتدفق", icon: <Lightbulb size={8} /> },
+    { name: "الحكمة الأزلية", icon: <BookOpen size={8} /> },
+    { name: "الذكاء العاطفي", icon: <Heart size={8} /> },
+    { name: "حدس السرد", icon: <Sparkles size={8} /> },
+    { name: "التنوع الثقافي", icon: <Globe size={8} /> },
+    { name: "روح العصر", icon: <Activity size={8} /> },
+    { name: "الارتجال الحر", icon: <Zap size={8} /> },
+];
+
+// 30 Creative Nodes (Right Hemisphere - Genesis Swarm)
+const CREATIVE_SPECIALIZATIONS = [
+  { name: "السرد الملحمي", icon: <Feather size={8} /> },
+  { name: "الرعب الكوني", icon: <Ghost size={8} /> },
+  { name: "الفلسفة الشرقية (Xianxia)", icon: <Flame size={8} /> },
+  { name: "الرومانسية المظلمة", icon: <Sparkles size={8} /> },
+  { name: "الوصف الحسي", icon: <Eye size={8} /> },
+  { name: "التدفق الشعوري", icon: <Activity size={8} /> },
+  { name: "صياغة الحوار", icon: <PenTool size={8} /> },
+  { name: "الرمزية العميقة", icon: <BookOpen size={8} /> },
+  { name: "التراجيديا", icon: <Ghost size={8} /> },
+  { name: "الفانتازيا الأوروبية", icon: <ShieldCheck size={8} /> },
+  { name: "الأجواء السوداوية (Berserk)", icon: <Flame size={8} /> },
+  { name: "الكوميديا السوداء", icon: <Zap size={8} /> },
+  { name: "الشعر والنثر", icon: <Feather size={8} /> },
+  { name: "بناء الغموض (LotM)", icon: <Eye size={8} /> },
+  { name: "الرهبة الوجودية", icon: <Ghost size={8} /> },
+  { name: "الارتقاء الروحي", icon: <Sparkles size={8} /> },
+  { name: "تصميم المشاهد", icon: <Layers size={8} /> },
+  { name: "الإيقاع السردي", icon: <Activity size={8} /> },
+  { name: "الصوت الداخلي", icon: <Brain size={8} /> },
+  { name: "جماليات القسوة", icon: <Flame size={8} /> },
+  { name: "السحر والتعاويذ", icon: <Zap size={8} /> },
+  { name: "الأساطير القديمة", icon: <BookOpen size={8} /> },
+  { name: "الدراما النفسية", icon: <Brain size={8} /> },
+  { name: "الوصف المكاني", icon: <Globe size={8} /> },
+  { name: "صراع المعتقدات", icon: <ShieldCheck size={8} /> },
+  { name: "التحول في الشخصيات", icon: <Activity size={8} /> },
+  { name: "النهايات الملحمية", icon: <Sparkles size={8} /> },
+  { name: "السريالية", icon: <Ghost size={8} /> },
+  { name: "الفلسفة العدمية", icon: <Eye size={8} /> },
+  { name: "الإبداع المطلق", icon: <Feather size={8} /> },
 ];
 
 const NeuralGrid: React.FC<NeuralGridProps> = ({ stage }) => {
   const [nodes, setNodes] = useState<NodeStatus[]>([]);
-  const [tick, setTick] = useState(0);
-
-  // Initialize nodes
+  
+  // Initialize 76 Nodes
   useEffect(() => {
     const initialNodes: NodeStatus[] = [];
-    // 30 Worker Nodes
+    
+    // 1. Logic Workers (0-29)
     for (let i = 0; i < 30; i++) {
       initialNodes.push({
         id: i,
-        type: 'worker',
+        type: 'worker_logic',
         status: 'idle',
         load: 5 + Math.random() * 10,
-        specialization: SPECIALIZATIONS[i]
+        specialization: LOGIC_SPECIALIZATIONS[i]?.name || "تحليل"
       });
     }
-    // 3 Reviewer Nodes
-    for (let i = 30; i < 33; i++) {
+    
+    // 2. Creative Workers (30-59)
+    for (let i = 0; i < 30; i++) {
+      initialNodes.push({
+        id: i + 30,
+        type: 'worker_creative',
+        status: 'idle',
+        load: 5 + Math.random() * 10,
+        specialization: CREATIVE_SPECIALIZATIONS[i]?.name || "إبداع"
+      });
+    }
+
+    // 3. Consciousness Workers (60-69) [NEW]
+    for (let i = 0; i < 10; i++) {
+        initialNodes.push({
+            id: i + 60,
+            type: 'worker_consciousness',
+            status: 'idle',
+            load: 10 + Math.random() * 20,
+            specialization: CONSCIOUSNESS_SPECIALIZATIONS[i]?.name || "وعي"
+        });
+    }
+
+    // 4. Logic Reviewers (70-72)
+    for (let i = 70; i < 73; i++) {
       initialNodes.push({
         id: i,
-        type: 'reviewer',
+        type: 'reviewer_logic',
         status: 'idle',
         load: 0,
-        specialization: 'Omni-Reviewer'
+        specialization: "تدقيق المنطق"
       });
     }
+
+    // 5. Narrative Reviewers (73-75)
+    for (let i = 73; i < 76; i++) {
+      initialNodes.push({
+        id: i,
+        type: 'reviewer_narrative',
+        status: 'idle',
+        load: 0,
+        specialization: "هندسة السرد"
+      });
+    }
+
     setNodes(initialNodes);
   }, []);
 
-  // High frequency animation loop for "matrix" feel
+  // Animation Loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setTick(t => t + 1);
       setNodes(prev => prev.map(node => {
         let targetStatus: NodeStatus['status'] = 'idle';
-        let loadChange = (Math.random() - 0.5) * 10;
+        let loadChange = (Math.random() - 0.5) * 5;
 
-        // Logic for Worker Nodes (0-29)
-        if (node.type === 'worker') {
-           if (stage === ProcessingStage.DISTRIBUTING) {
-             // Sequential activation or rapid random
-             targetStatus = Math.random() > 0.5 ? 'analyzing' : 'idle';
-             loadChange += 20;
-           } else if (stage === ProcessingStage.ANALYZING) {
-             // Heavy load, mostly active
-             targetStatus = Math.random() > 0.2 ? 'analyzing' : 'idle';
-             loadChange += (Math.random() * 15);
-           } else if (stage === ProcessingStage.SYNTHESIZING) {
-             // Cooling down, transferring
-             targetStatus = Math.random() > 0.8 ? 'analyzing' : 'idle';
-             loadChange -= 5;
+        // LOGIC SWARM BEHAVIOR
+        if (node.type === 'worker_logic') {
+           if (stage === ProcessingStage.ANALYZING || stage === ProcessingStage.DISTRIBUTING) {
+             if (Math.random() > 0.5) targetStatus = 'analyzing';
+             loadChange += 10;
            }
         } 
         
-        // Logic for Reviewer Nodes (30-32)
-        if (node.type === 'reviewer') {
-            if (stage === ProcessingStage.SYNTHESIZING) {
-                targetStatus = 'reviewing';
-                loadChange += 15;
-            } else if (stage === ProcessingStage.REVIEWING) {
-                targetStatus = 'reviewing';
-                loadChange += Math.random() * 5; // Stable high load
+        // CREATIVE SWARM BEHAVIOR
+        if (node.type === 'worker_creative') {
+           if (stage === ProcessingStage.CREATING || stage === ProcessingStage.ANALYZING) {
+             if (Math.random() > 0.4) targetStatus = 'dreaming'; // Creative nodes "dream"
+             loadChange += 12;
+           }
+        }
+
+        // CONSCIOUSNESS SWARM BEHAVIOR
+        if (node.type === 'worker_consciousness') {
+            if (stage !== ProcessingStage.IDLE) {
+                // Consciousness is almost always active during processing to guide flow
+                if (Math.random() > 0.3) targetStatus = 'flow';
+                loadChange += 5;
             }
         }
 
+        // REVIEWER BEHAVIOR
+        if (stage === ProcessingStage.REVIEWING || stage === ProcessingStage.SYNTHESIZING) {
+            if (node.type === 'reviewer_logic') targetStatus = 'reviewing';
+            if (node.type === 'reviewer_narrative') targetStatus = 'reviewing';
+            loadChange += 8;
+        }
+
         let newLoad = Math.min(100, Math.max(2, node.load + loadChange));
-        // Decay if idle
         if (stage === ProcessingStage.IDLE) {
-            newLoad = Math.max(2, newLoad - 2);
+            newLoad = Math.max(2, newLoad * 0.92);
             targetStatus = 'idle';
         }
 
-        return {
-          ...node,
-          status: targetStatus,
-          load: newLoad
-        };
+        return { ...node, status: targetStatus, load: newLoad };
       }));
-    }, 100); // Faster update for smoother "glitch" visuals
+    }, 100);
 
     return () => clearInterval(interval);
   }, [stage]);
 
-  const activeWorkers = nodes.filter(n => n.type === 'worker' && n.status === 'analyzing').length;
-  const activeReviewers = nodes.filter(n => n.type === 'reviewer' && n.status === 'reviewing').length;
+  const logicWorkers = nodes.filter(n => n.type === 'worker_logic');
+  const creativeWorkers = nodes.filter(n => n.type === 'worker_creative');
+  const consciousnessWorkers = nodes.filter(n => n.type === 'worker_consciousness');
+  const logicReviewers = nodes.filter(n => n.type === 'reviewer_logic');
+  const narrativeReviewers = nodes.filter(n => n.type === 'reviewer_narrative');
 
   return (
-    <div className="relative bg-black/80 border border-zinc-800 rounded-xl overflow-hidden backdrop-blur-md shadow-2xl">
-      {/* Grid Background Pattern */}
-      <div className="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+    <div className="flex flex-col gap-3 w-full">
       
-      {/* Header */}
-      <div className="relative z-10 flex justify-between items-center p-3 border-b border-zinc-800 bg-zinc-900/50">
-        <div className="flex items-center gap-2">
-          <Cpu size={14} className={`text-emerald-500 ${stage !== ProcessingStage.IDLE ? 'animate-pulse' : ''}`} />
-          <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase glitch-text">
-            Core_Grid::Active
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-mono">
-            <span className={stage !== ProcessingStage.IDLE ? "text-emerald-400" : "text-zinc-600"}>
-                {activeWorkers.toString().padStart(2, '0')}/30
-            </span>
-            <span className="text-zinc-700">|</span>
-            <span className={stage === ProcessingStage.REVIEWING ? "text-indigo-400" : "text-zinc-600"}>
-                {activeReviewers}/03
-            </span>
-        </div>
+      {/* TRI-CORE PROCESSING UNIT */}
+      <div className="flex gap-2 h-auto">
+          
+          {/* LEFT: LOGIC CORE (45% width) */}
+          <div className="flex-1 bg-black/40 border border-emerald-900/30 rounded-lg p-2 overflow-hidden">
+             <div className="flex justify-between items-center mb-2 relative z-10">
+                 <span className="text-[9px] font-mono text-emerald-500/80 uppercase tracking-wider flex items-center gap-1">
+                    <Cpu size={8} /> Logic (30)
+                 </span>
+             </div>
+             <div className="grid grid-cols-5 gap-1 relative z-10">
+                {logicWorkers.map((node, i) => {
+                    const isActive = node.status === 'analyzing';
+                    return (
+                        <div key={node.id} className={`h-5 w-full rounded-sm transition-all duration-300 relative group border ${isActive ? 'bg-emerald-500/20 border-emerald-500/50 shadow-[0_0_4px_rgba(16,185,129,0.4)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
+                            <div className="absolute bottom-0 left-0 w-full bg-emerald-500/40 transition-all" style={{ height: `${node.load}%` }} />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-60 group-hover:opacity-100">
+                                {LOGIC_SPECIALIZATIONS[i]?.icon}
+                            </div>
+                        </div>
+                    );
+                })}
+             </div>
+          </div>
+
+          {/* CENTER: GOLDEN CONSCIOUSNESS SPINE (10% width) */}
+          <div className="w-12 bg-black/40 border border-amber-500/30 rounded-lg p-1 overflow-hidden flex flex-col gap-1">
+             {consciousnessWorkers.map((node, i) => {
+                 const isActive = node.status === 'flow';
+                 return (
+                    <div key={node.id} className={`flex-1 w-full rounded-sm transition-all duration-500 relative border flex items-center justify-center ${isActive ? 'bg-amber-500/20 border-amber-500/60 shadow-[0_0_6px_rgba(245,158,11,0.5)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
+                         <div className={`transition-all duration-500 ${isActive ? 'text-amber-300 scale-110' : 'text-zinc-700 scale-90'}`}>
+                             {CONSCIOUSNESS_SPECIALIZATIONS[i]?.icon}
+                         </div>
+                    </div>
+                 )
+             })}
+          </div>
+
+          {/* RIGHT: GENESIS CORE (45% width) */}
+          <div className="flex-1 bg-black/40 border border-purple-900/30 rounded-lg p-2 overflow-hidden">
+             <div className="flex justify-between items-center mb-2 relative z-10">
+                 <span className="text-[9px] font-mono text-purple-400/80 uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles size={8} /> Genesis (30)
+                 </span>
+             </div>
+             <div className="grid grid-cols-5 gap-1 relative z-10">
+                {creativeWorkers.map((node, i) => {
+                    const isActive = node.status === 'dreaming';
+                    return (
+                        <div key={node.id} className={`h-5 w-full rounded-sm transition-all duration-300 relative group border ${isActive ? 'bg-purple-500/20 border-purple-500/50 shadow-[0_0_4px_rgba(168,85,247,0.4)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
+                            <div className="absolute bottom-0 left-0 w-full bg-purple-500/40 transition-all" style={{ height: `${node.load}%` }} />
+                            <div className={`absolute inset-0 flex items-center justify-center opacity-60 group-hover:opacity-100 ${isActive ? 'text-purple-300' : 'text-zinc-600'}`}>
+                                {CREATIVE_SPECIALIZATIONS[i]?.icon}
+                            </div>
+                        </div>
+                    );
+                })}
+             </div>
+          </div>
+
       </div>
 
-      <div className="relative z-10 p-4">
-        {/* 30 WORKER NODES */}
-        <div className="mb-2 flex justify-between items-end">
-             <h4 className="text-[9px] text-zinc-500 font-mono uppercase tracking-widest">Deep Analysis Layer</h4>
-             {stage === ProcessingStage.ANALYZING && (
-                 <span className="text-[9px] text-emerald-500 animate-pulse">PROCESSING...</span>
-             )}
-        </div>
-        
-        <div className="grid grid-cols-6 gap-1.5 mb-6">
-          {nodes.filter(n => n.type === 'worker').map((node) => {
-            const isActive = node.status === 'analyzing';
-            const opacity = isActive ? 1 : 0.3;
-            const colorClass = isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-zinc-800';
-            const borderClass = isActive ? 'border-emerald-400/50' : 'border-zinc-800';
+      {/* CENTRAL BUS */}
+      <div className="h-2 w-full flex items-center justify-center relative">
+          <div className="w-full h-[1px] bg-gradient-to-r from-emerald-900 via-amber-500/50 to-purple-900"></div>
+          {stage !== ProcessingStage.IDLE && (
+              <div className="absolute w-2 h-2 bg-amber-100 rounded-full shadow-[0_0_10px_#fbbf24] animate-ping"></div>
+          )}
+      </div>
 
-            return (
-              <div 
-                key={node.id}
-                className={`
-                  group relative aspect-square rounded-sm border ${borderClass} transition-all duration-200 overflow-hidden
-                  ${isActive ? 'scale-105 z-10' : 'scale-100'}
-                `}
-                title={node.specialization}
-              >
-                {/* Inner Load Bar */}
-                <div 
-                    className={`absolute bottom-0 left-0 right-0 transition-all duration-100 ${colorClass}`}
-                    style={{ height: `${node.load}%`, opacity: opacity }}
-                />
-                
-                {/* Scanline effect inside active nodes */}
-                {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent h-[200%] w-full animate-[scanline_1s_linear_infinite]" />
-                )}
-
-                {/* Hover Tooltip (Simulated via title mostly, but could be visual) */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/80">
-                    <Activity size={10} className="text-emerald-400" />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* CONNECTORS */}
-        <div className="relative h-8 w-full mb-4 flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-x-0 top-1/2 h-px bg-zinc-800"></div>
-            <div className="absolute inset-x-0 top-1/2 h-px bg-emerald-500/50 scale-x-0 transition-transform duration-500"
-                 style={{ transform: `scaleX(${stage === ProcessingStage.SYNTHESIZING ? 1 : 0})` }}
-            ></div>
-            <div className={`px-3 py-1 bg-black border border-zinc-800 rounded-full z-10 flex items-center gap-2 transition-colors duration-300 ${stage === ProcessingStage.SYNTHESIZING ? 'border-emerald-500 text-emerald-500' : 'text-zinc-600'}`}>
-                <Share2 size={10} className={stage === ProcessingStage.SYNTHESIZING ? 'animate-spin' : ''} />
-                <span className="text-[8px] font-mono uppercase">Data Synapse</span>
-            </div>
-        </div>
-
-        {/* 3 REVIEWER NODES */}
-        <div className="mb-2 flex justify-between items-end">
-             <h4 className="text-[9px] text-zinc-500 font-mono uppercase tracking-widest">Executive Review Layer</h4>
-             {stage === ProcessingStage.REVIEWING && (
-                 <span className="text-[9px] text-indigo-400 animate-pulse">REFINING...</span>
-             )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          {nodes.filter(n => n.type === 'reviewer').map((node, idx) => {
-            const isActive = node.status === 'reviewing';
-            
-            return (
-              <div 
-                key={node.id}
-                className={`
-                  relative h-16 rounded-lg border transition-all duration-500 flex flex-col items-center justify-center gap-1 overflow-hidden
-                  ${isActive 
-                    ? 'bg-indigo-500/10 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.4)]' 
-                    : 'bg-zinc-900 border-zinc-800'}
-                `}
-              >
-                {/* Background ring pulse */}
-                {isActive && (
-                    <div className="absolute inset-0 bg-indigo-500/20 animate-pulse"></div>
-                )}
-
-                <div className={`relative z-10 transition-transform duration-300 ${isActive ? 'scale-110 text-indigo-300' : 'text-zinc-600'}`}>
-                    {idx === 0 && <Brain size={18} />}
-                    {idx === 1 && <ShieldCheck size={18} />}
-                    {idx === 2 && <Zap size={18} />}
-                </div>
-                
-                <div className="relative z-10 text-[8px] font-mono uppercase text-zinc-500">
-                    {idx === 0 ? 'Context' : idx === 1 ? 'Verify' : 'Format'}
-                </div>
-
-                {/* High-tech loading bar at bottom */}
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-800">
-                    <div 
-                        className="h-full bg-indigo-500 transition-all duration-200"
-                        style={{ width: `${node.load}%` }}
-                    />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Status Footer */}
-        <div className="mt-4 pt-3 border-t border-zinc-800 flex justify-between items-center">
-             <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${stage === ProcessingStage.IDLE ? 'bg-zinc-600' : 'bg-emerald-500 animate-ping'}`}></div>
-                <span className="text-[9px] text-zinc-500 font-mono">
-                    STATUS: {stage}
-                </span>
-             </div>
-             <div className="flex gap-1">
-                 {[1,2,3,4].map(i => (
-                     <div key={i} className={`w-0.5 h-2 rounded-sm ${Math.random() > 0.5 ? 'bg-zinc-700' : 'bg-zinc-800'}`}></div>
-                 ))}
-             </div>
-        </div>
-
+      {/* REVIEWER CORES (Split Logic/Narrative) */}
+      <div className="bg-zinc-900/20 border border-zinc-800/60 rounded-lg p-2 backdrop-blur-sm">
+          <div className="flex justify-between mb-2">
+              <span className="text-[9px] text-zinc-500 font-mono uppercase">Arbitration Layer (6 Cores)</span>
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+              {/* 3 Logic Reviewers */}
+              {logicReviewers.map((node) => (
+                  <div key={node.id} className={`h-10 border rounded flex items-center justify-center transition-all ${node.status === 'reviewing' ? 'border-emerald-500 text-emerald-400 bg-emerald-900/10' : 'border-zinc-800 text-zinc-700'}`}>
+                      <ShieldCheck size={14} />
+                  </div>
+              ))}
+              {/* 3 Narrative Reviewers */}
+              {narrativeReviewers.map((node) => (
+                  <div key={node.id} className={`h-10 border rounded flex items-center justify-center transition-all ${node.status === 'reviewing' ? 'border-purple-500 text-purple-400 bg-purple-900/10' : 'border-zinc-800 text-zinc-700'}`}>
+                      <Feather size={14} />
+                  </div>
+              ))}
+          </div>
       </div>
     </div>
   );
