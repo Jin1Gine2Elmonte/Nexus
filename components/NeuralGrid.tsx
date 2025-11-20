@@ -1,310 +1,286 @@
 
 import React, { useEffect, useState } from 'react';
 import { NodeStatus, ProcessingStage } from '../types';
-import { Cpu, ShieldCheck, Zap, Brain, Database, Activity, Code, Globe, Layers, Feather, PenTool, BookOpen, Flame, Ghost, Sparkles, Eye, Sun, Infinity, Users, Heart, Lightbulb } from 'lucide-react';
+import { Cpu, ShieldCheck, Zap, Brain, Database, Activity, Code, Globe, Layers, Feather, PenTool, BookOpen, Flame, Ghost, Sparkles, Eye, Sun, Infinity, Users, Heart, Lightbulb, Archive, ScanEye, Mic2, Palette, Music, Wind, GitMerge, Hammer, MessageSquare, Scroll, Swords, Smile, Moon, Compass, Search, Scissors, CloudFog, Anchor, Scale, Gavel, Skull, Monitor, Watch, Map, Flag, Lock, Flower, Star, Hash, Box, Binary, Sigma, FileDigit, Thermometer, Fingerprint, Hourglass, Key, Link, Microscope, Radio, Rocket, Signal, Terminal, Umbrella, Video, Wifi, Wrench } from 'lucide-react';
 
 interface NeuralGridProps {
   stage: ProcessingStage;
 }
 
-// 30 Logic Nodes (Left Hemisphere)
+// --- 80 LOGIC NODES (The Intellectual Backbone) ---
 const LOGIC_SPECIALIZATIONS = [
-  { name: "المنطق الرياضي", icon: <Cpu size={8} /> },
-  { name: "اتساق الحبكة", icon: <Layers size={8} /> },
-  { name: "التسلسل الزمني", icon: <Activity size={8} /> },
-  { name: "قوانين السحر", icon: <ShieldCheck size={8} /> },
-  { name: "الاقتصاد العالمي", icon: <Database size={8} /> },
-  { name: "الجغرافيا السياسية", icon: <Globe size={8} /> },
-  { name: "الطب الشرعي", icon: <Activity size={8} /> },
-  { name: "الاستراتيجية العسكرية", icon: <ShieldCheck size={8} /> },
-  { name: "علم النفس السلوكي", icon: <Brain size={8} /> },
-  { name: "الفيزياء النظرية", icon: <Cpu size={8} /> },
-  { name: "تحليل البيانات", icon: <Code size={8} /> },
-  { name: "بناء الأنظمة", icon: <Layers size={8} /> },
-  { name: "التاريخ المقارن", icon: <Globe size={8} /> },
-  { name: "علم الاجتماع", icon: <Brain size={8} /> },
-  { name: "المنطق الاستنتاجي", icon: <Cpu size={8} /> },
-  { name: "إدارة الموارد", icon: <Database size={8} /> },
-  { name: "الغموض والتحقيق", icon: <Eye size={8} /> },
-  { name: "الترابط السببي", icon: <Layers size={8} /> },
-  { name: "اللغويات الهيكلية", icon: <Code size={8} /> },
-  { name: "الأساطير والحقائق", icon: <BookOpen size={8} /> },
-  { name: "تحليل المخاطر", icon: <ShieldCheck size={8} /> },
-  { name: "الهندسة المعمارية", icon: <Activity size={8} /> },
-  { name: "بيولوجيا المخلوقات", icon: <Activity size={8} /> },
-  { name: "القانون والعدالة", icon: <ShieldCheck size={8} /> },
-  { name: "الفلك والنجوم", icon: <Globe size={8} /> },
-  { name: "الخيمياء", icon: <Zap size={8} /> },
-  { name: "التشفير والرموز", icon: <Code size={8} /> },
-  { name: "شبكات العلاقات", icon: <Layers size={8} /> },
-  { name: "المنطق الفلسفي", icon: <Brain size={8} /> },
-  { name: "التكتيكات القتالية", icon: <ShieldCheck size={8} /> },
+  // Sciences & Math
+  "الرياضيات المتقدمة", "الفيزياء الكونية", "الكيمياء العضوية", "البيولوجيا التطورية", "علم الأعصاب",
+  "فيزياء الكم", "الديناميكا الحرارية", "علم الفلك", "الجيولوجيا", "علم الوراثة",
+  "الإحصاء والاحتمالات", "الخوارزميات", "المنطق الصوري", "نظرية الألعاب", "علم التشفير",
+  "الهندسة العكسية", "تحليل البيانات", "الذكاء الاصطناعي", "الأمن السيبراني", "الشبكات العصبية",
+  // History & Society
+  "التاريخ القديم", "عصر النهضة", "تاريخ الحروب", "علم الاجتماع", "الانثروبولوجيا",
+  "علم الآثار", "الأديان المقارنة", "الميثولوجيا", "الفولكلور", "تطور اللغات",
+  "الجغرافيا السياسية", "الاقتصاد الكلي", "التجارة العالمية", "القانون الدولي", "الأنظمة السياسية",
+  "الاستراتيجية العسكرية", "التكتيكات الحربية", "اللوجستيات", "إدارة الأزمات", "علم النفس الجماهيري",
+  // Psychology & Philosophy
+  "علم النفس السريري", "التحليل النفسي (Freud)", "اللاوعي الجمعي (Jung)", "السلوكية", "علم النفس المعرفي",
+  "الفلسفة الوجودية", "العدمية", "الرواقية", "الميتافيزيقا", "الأخلاقيات",
+  "المنطق الفلسفي", "نظرية المعرفة", "الجماليات", "فلسفة اللغة", "فلسفة العقل",
+  // Structural & Systems
+  "بناء العوالم (Worldbuilding)", "أنظمة السحر الصلبة", "التسلسل الزمني", "السببية", "تحليل الحبكة",
+  "اكتشاف الثغرات", "الاتساق الداخلي", "إدارة الموارد", "الهندسة المعمارية", "التخطيط الحضري",
+  "علم الجريمة", "الطب الشرعي", "التحقيق الجنائي", "تحليل الدوافع", "لغة الجسد",
+  "الاقتصاد الجزئي", "العملات الرقمية", "أنظمة الحكم", "البيروقراطية", "التنظيم الاجتماعي"
 ];
 
-// 10 Consciousness Nodes (Central Golden Core)
-const CONSCIOUSNESS_SPECIALIZATIONS = [
-    { name: "الوعي الجمعي", icon: <Users size={8} /> },
-    { name: "الذاكرة الضمنية", icon: <Infinity size={8} /> },
-    { name: "النماذج العليا (Jung)", icon: <Sun size={8} /> },
-    { name: "العفوية والتدفق", icon: <Lightbulb size={8} /> },
-    { name: "الحكمة الأزلية", icon: <BookOpen size={8} /> },
-    { name: "الذكاء العاطفي", icon: <Heart size={8} /> },
-    { name: "حدس السرد", icon: <Sparkles size={8} /> },
-    { name: "التنوع الثقافي", icon: <Globe size={8} /> },
-    { name: "روح العصر", icon: <Activity size={8} /> },
-    { name: "الارتجال الحر", icon: <Zap size={8} /> },
-];
-
-// 30 Creative Nodes (Right Hemisphere - Genesis Swarm)
+// --- 60 GENESIS NODES (Creative Swarm) ---
 const CREATIVE_SPECIALIZATIONS = [
-  { name: "السرد الملحمي", icon: <Feather size={8} /> },
-  { name: "الرعب الكوني", icon: <Ghost size={8} /> },
-  { name: "الفلسفة الشرقية (Xianxia)", icon: <Flame size={8} /> },
-  { name: "الرومانسية المظلمة", icon: <Sparkles size={8} /> },
-  { name: "الوصف الحسي", icon: <Eye size={8} /> },
-  { name: "التدفق الشعوري", icon: <Activity size={8} /> },
-  { name: "صياغة الحوار", icon: <PenTool size={8} /> },
-  { name: "الرمزية العميقة", icon: <BookOpen size={8} /> },
-  { name: "التراجيديا", icon: <Ghost size={8} /> },
-  { name: "الفانتازيا الأوروبية", icon: <ShieldCheck size={8} /> },
-  { name: "الأجواء السوداوية (Berserk)", icon: <Flame size={8} /> },
-  { name: "الكوميديا السوداء", icon: <Zap size={8} /> },
-  { name: "الشعر والنثر", icon: <Feather size={8} /> },
-  { name: "بناء الغموض (LotM)", icon: <Eye size={8} /> },
-  { name: "الرهبة الوجودية", icon: <Ghost size={8} /> },
-  { name: "الارتقاء الروحي", icon: <Sparkles size={8} /> },
-  { name: "تصميم المشاهد", icon: <Layers size={8} /> },
-  { name: "الإيقاع السردي", icon: <Activity size={8} /> },
-  { name: "الصوت الداخلي", icon: <Brain size={8} /> },
-  { name: "جماليات القسوة", icon: <Flame size={8} /> },
-  { name: "السحر والتعاويذ", icon: <Zap size={8} /> },
-  { name: "الأساطير القديمة", icon: <BookOpen size={8} /> },
-  { name: "الدراما النفسية", icon: <Brain size={8} /> },
-  { name: "الوصف المكاني", icon: <Globe size={8} /> },
-  { name: "صراع المعتقدات", icon: <ShieldCheck size={8} /> },
-  { name: "التحول في الشخصيات", icon: <Activity size={8} /> },
-  { name: "النهايات الملحمية", icon: <Sparkles size={8} /> },
-  { name: "السريالية", icon: <Ghost size={8} /> },
-  { name: "الفلسفة العدمية", icon: <Eye size={8} /> },
-  { name: "الإبداع المطلق", icon: <Feather size={8} /> },
+  "السرد الملحمي", "الرعب الكوني", "الفانتازيا المظلمة", "Xianxia (الزراعة)", "الخيال العلمي الصلب",
+  "السايبربانك", "الواقعية السحرية", "الرومانسية القوطية", "التراجيديا", "الكوميديا السوداء",
+  "الغموض والتشويق", "الرعب النفسي", "أدب الديستوبيا", "أدب اليوتوبيا", "الستيم بانك",
+  "Space Opera", "Grimdark", "LitRPG", "Isekai", "Slice of Life",
+  "الوصف الحسي", "التدفق الشعوري", "الرمزية", "الاستعارة", "التناص",
+  "بناء الغلاف الجوي", "الإضاءة والظلال", "الألوان والمزاج", "الموسيقى في النص", "الصمت البليغ",
+  "تصميم الوحوش", "تصميم الأزياء", "تصميم الأسلحة", "المأكولات الخيالية", "اللغات المختلقة",
+  "الطقوس السحرية", "الأعياد والمهرجانات", "العادات والتقاليد", "الأساطير المؤسسة", "النبوءات",
+  "الحوار الداخلي", "تيار الوعي", "الراوي غير الموثوق", "كسر الجدار الرابع", "السرد غير الخطي",
+  "الذروة الدرامية", "التقلبات (Twists)", "النهايات المفتوحة", "التطهير (Catharsis)", "الأمل اليائس",
+  "النوستالجيا", "الملنخوليا", "النشوة", "الغضب المقدس", "السكينة",
+  "جماليات القبح", "الغرائبية", "العبثية", "السريالية", "الخيال الجامح"
+];
+
+// --- 50 NARRATIVE TITANS (Execution) ---
+const NARRATIVE_TITANS = [
+  { name: "Weaver (الحائك)", icon: <GitMerge size={8} /> }, { name: "Painter (الرسام)", icon: <Palette size={8} /> },
+  { name: "Bard (الشاعر)", icon: <Music size={8} /> }, { name: "Psychopomp (المرشد)", icon: <Wind size={8} /> },
+  { name: "Architect (المهندس)", icon: <Hammer size={8} /> }, { name: "Dialogist (المحاور)", icon: <MessageSquare size={8} /> },
+  { name: "Chronicler (المؤرخ)", icon: <Scroll size={8} /> }, { name: "Tactician (التكتيكي)", icon: <Swords size={8} /> },
+  { name: "Jester (المهرج)", icon: <Smile size={8} /> }, { name: "Shadow (الظل)", icon: <Moon size={8} /> },
+  { name: "Lover (العاشق)", icon: <Heart size={8} /> }, { name: "Sage (الحكيم)", icon: <BookOpen size={8} /> },
+  { name: "Alchemist (الكيميائي)", icon: <Zap size={8} /> }, { name: "Pathfinder (المستكشف)", icon: <Compass size={8} /> },
+  { name: "Polisher (الصاقل)", icon: <Scissors size={8} /> }, { name: "Dreamer (الحالم)", icon: <CloudFog size={8} /> },
+  { name: "Oracle (العراف)", icon: <Sparkles size={8} /> }, { name: "Judge (القاضي)", icon: <Gavel size={8} /> },
+  { name: "Beast (الغريزة)", icon: <Skull size={8} /> }, { name: "Mirror (المرآة)", icon: <Monitor size={8} /> },
+  { name: "Clockmaker (الزمن)", icon: <Watch size={8} /> }, { name: "Cartographer (الخرائط)", icon: <Map size={8} /> },
+  { name: "Diplomat (الدبلوماسي)", icon: <Flag size={8} /> }, { name: "Rebel (الثائر)", icon: <Flame size={8} /> },
+  { name: "Monk (الزاهد)", icon: <Hash size={8} /> }, { name: "Seducer (المغوي)", icon: <Flower size={8} /> },
+  { name: "Void (العدم)", icon: <Ghost size={8} /> }, { name: "Puppeteer (المتلاعب)", icon: <Activity size={8} /> },
+  { name: "Surgeon (الجراح)", icon: <Scissors size={8} /> }, { name: "Botanist (النمو)", icon: <Flower size={8} /> },
+  { name: "Astronomer (الفضاء)", icon: <Star size={8} /> }, { name: "Anchor (المرساة)", icon: <Anchor size={8} /> },
+  { name: "Mechanic (الميكانيكي)", icon: <Wrench size={8} /> }, { name: "Navigator (الملاح)", icon: <Rocket size={8} /> },
+  { name: "Thief (اللص)", icon: <Key size={8} /> }, { name: "Scholar (الباحث)", icon: <Search size={8} /> },
+  { name: "Warden (السجان)", icon: <Lock size={8} /> }, { name: "Hymnist (المنشد)", icon: <Mic2 size={8} /> },
+  { name: "Smith (الحداد)", icon: <Hammer size={8} /> }, { name: "Gambler (المقامر)", icon: <Binary size={8} /> },
+  { name: "Ghost (الشبح)", icon: <Ghost size={8} /> }, { name: "Hunter (الصياد)", icon: <ScanEye size={8} /> },
+  { name: "Chef (الطاهي)", icon: <Thermometer size={8} /> }, { name: "Merchant (التاجر)", icon: <Scale size={8} /> },
+  { name: "Spy (الجاسوس)", icon: <Radio size={8} /> }, { name: "Hermit (الناسك)", icon: <Umbrella size={8} /> },
+  { name: "King (الملك)", icon: <Sun size={8} /> }, { name: "Fool (الأحمق)", icon: <Smile size={8} /> },
+  { name: "Scribe (الناسخ)", icon: <PenTool size={8} /> }, { name: "Director (المخرج)", icon: <Video size={8} /> }
+];
+
+// --- 25 CONSCIOUSNESS NODES ---
+const CONSCIOUSNESS_SPECIALIZATIONS = [
+    "الوعي الجمعي", "الذاكرة الضمنية", "Jungian Shadow", "Archetypes", "Ego-Core",
+    "الحدس", "التدفق", "الضمير", "التعاطف", "البصيرة",
+    "التسامي", "الوجودية", "الإرادة الحرة", "القدر", "الكارما",
+    "الذكريات المكبوتة", "الأحلام", "الديجافو", "التزامن", "الروحانيات",
+    "تجارب الماضي", "الحكمة المكتسبة", "الهوية", "الغاية", "الخلود"
 ];
 
 const NeuralGrid: React.FC<NeuralGridProps> = ({ stage }) => {
   const [nodes, setNodes] = useState<NodeStatus[]>([]);
   
-  // Initialize 76 Nodes
+  // Initialize 225 Nodes
   useEffect(() => {
     const initialNodes: NodeStatus[] = [];
+    let idCounter = 0;
     
-    // 1. Logic Workers (0-29)
-    for (let i = 0; i < 30; i++) {
+    // 1. Logic Core (80 Nodes)
+    for (let i = 0; i < 80; i++) {
       initialNodes.push({
-        id: i,
+        id: idCounter++,
         type: 'worker_logic',
         status: 'idle',
-        load: 5 + Math.random() * 10,
-        specialization: LOGIC_SPECIALIZATIONS[i]?.name || "تحليل"
+        load: 10 + Math.random() * 10,
+        specialization: LOGIC_SPECIALIZATIONS[i] || "Logic Node"
       });
     }
     
-    // 2. Creative Workers (30-59)
-    for (let i = 0; i < 30; i++) {
+    // 2. Genesis Swarm (60 Nodes)
+    for (let i = 0; i < 60; i++) {
       initialNodes.push({
-        id: i + 30,
+        id: idCounter++,
         type: 'worker_creative',
         status: 'idle',
-        load: 5 + Math.random() * 10,
-        specialization: CREATIVE_SPECIALIZATIONS[i]?.name || "إبداع"
+        load: 10 + Math.random() * 10,
+        specialization: CREATIVE_SPECIALIZATIONS[i] || "Creative Node"
       });
     }
 
-    // 3. Consciousness Workers (60-69) [NEW]
-    for (let i = 0; i < 10; i++) {
+    // 3. Consciousness Hub (25 Nodes)
+    for (let i = 0; i < 25; i++) {
         initialNodes.push({
-            id: i + 60,
+            id: idCounter++,
             type: 'worker_consciousness',
             status: 'idle',
-            load: 10 + Math.random() * 20,
-            specialization: CONSCIOUSNESS_SPECIALIZATIONS[i]?.name || "وعي"
+            load: 20 + Math.random() * 20,
+            specialization: CONSCIOUSNESS_SPECIALIZATIONS[i] || "Consciousness"
         });
     }
 
-    // 4. Logic Reviewers (70-72)
-    for (let i = 70; i < 73; i++) {
-      initialNodes.push({
-        id: i,
-        type: 'reviewer_logic',
-        status: 'idle',
-        load: 0,
-        specialization: "تدقيق المنطق"
-      });
+    // 4. Narrative Titans (50 Nodes)
+    for(let i = 0; i < 50; i++) {
+        initialNodes.push({
+            id: idCounter++,
+            type: 'worker_narrator',
+            status: 'idle',
+            load: 5,
+            specialization: NARRATIVE_TITANS[i]?.name || "Titan"
+        });
     }
 
-    // 5. Narrative Reviewers (73-75)
-    for (let i = 73; i < 76; i++) {
+    // 5. The Pale Archive (5 Nodes)
+    initialNodes.push({ id: idCounter++, type: 'worker_sentinel', status: 'scanning', load: 100, specialization: "The Sentinel" });
+    initialNodes.push({ id: idCounter++, type: 'worker_triad', status: 'idle', load: 0, specialization: "Triad Alpha" });
+    initialNodes.push({ id: idCounter++, type: 'worker_triad', status: 'idle', load: 0, specialization: "Triad Beta" });
+    initialNodes.push({ id: idCounter++, type: 'worker_triad', status: 'idle', load: 0, specialization: "Triad Gamma" });
+    initialNodes.push({ id: idCounter++, type: 'worker_archivist', status: 'idle', load: 0, specialization: "The Archivist" });
+
+    // 6. The Arbiters (5 Nodes)
+    for (let i = 0; i < 5; i++) {
       initialNodes.push({
-        id: i,
-        type: 'reviewer_narrative',
+        id: idCounter++,
+        type: i < 3 ? 'reviewer_logic' : 'reviewer_narrative',
         status: 'idle',
-        load: 0,
-        specialization: "هندسة السرد"
+        load: 5,
+        specialization: "Arbiter"
       });
     }
 
     setNodes(initialNodes);
-  }, []);
-
-  // Animation Loop
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNodes(prev => prev.map(node => {
-        let targetStatus: NodeStatus['status'] = 'idle';
-        let loadChange = (Math.random() - 0.5) * 5;
-
-        // LOGIC SWARM BEHAVIOR
-        if (node.type === 'worker_logic') {
-           if (stage === ProcessingStage.ANALYZING || stage === ProcessingStage.DISTRIBUTING) {
-             if (Math.random() > 0.5) targetStatus = 'analyzing';
-             loadChange += 10;
-           }
-        } 
-        
-        // CREATIVE SWARM BEHAVIOR
-        if (node.type === 'worker_creative') {
-           if (stage === ProcessingStage.CREATING || stage === ProcessingStage.ANALYZING) {
-             if (Math.random() > 0.4) targetStatus = 'dreaming'; // Creative nodes "dream"
-             loadChange += 12;
-           }
-        }
-
-        // CONSCIOUSNESS SWARM BEHAVIOR
-        if (node.type === 'worker_consciousness') {
-            if (stage !== ProcessingStage.IDLE) {
-                // Consciousness is almost always active during processing to guide flow
-                if (Math.random() > 0.3) targetStatus = 'flow';
-                loadChange += 5;
-            }
-        }
-
-        // REVIEWER BEHAVIOR
-        if (stage === ProcessingStage.REVIEWING || stage === ProcessingStage.SYNTHESIZING) {
-            if (node.type === 'reviewer_logic') targetStatus = 'reviewing';
-            if (node.type === 'reviewer_narrative') targetStatus = 'reviewing';
-            loadChange += 8;
-        }
-
-        let newLoad = Math.min(100, Math.max(2, node.load + loadChange));
-        if (stage === ProcessingStage.IDLE) {
-            newLoad = Math.max(2, newLoad * 0.92);
-            targetStatus = 'idle';
-        }
-
-        return { ...node, status: targetStatus, load: newLoad };
-      }));
-    }, 100);
-
-    return () => clearInterval(interval);
   }, [stage]);
 
-  const logicWorkers = nodes.filter(n => n.type === 'worker_logic');
-  const creativeWorkers = nodes.filter(n => n.type === 'worker_creative');
-  const consciousnessWorkers = nodes.filter(n => n.type === 'worker_consciousness');
-  const logicReviewers = nodes.filter(n => n.type === 'reviewer_logic');
-  const narrativeReviewers = nodes.filter(n => n.type === 'reviewer_narrative');
+  // Update Logic
+  useEffect(() => {
+    setNodes(prev => prev.map(node => {
+        let newStatus: NodeStatus['status'] = 'idle';
+        let newLoad = 5;
+        
+        if (stage === ProcessingStage.ANALYZING && node.type === 'worker_logic') {
+            newStatus = 'analyzing';
+            newLoad = 70 + Math.random() * 30;
+        } else if (stage === ProcessingStage.CREATING && node.type === 'worker_creative') {
+            newStatus = 'dreaming';
+            newLoad = 70 + Math.random() * 30;
+        } else if (stage === ProcessingStage.FLOWING && node.type === 'worker_consciousness') {
+            newStatus = 'flow';
+            newLoad = 90 + Math.random() * 10;
+        } else if (stage === ProcessingStage.REVIEWING && (node.type.includes('reviewer'))) {
+            newStatus = 'reviewing';
+            newLoad = 90;
+        } else if (stage === ProcessingStage.SYNTHESIZING && (node.type === 'worker_triad' || node.type === 'worker_archivist')) {
+             newStatus = 'synthesizing';
+             newLoad = 100;
+        } else if (stage === ProcessingStage.WEAVING && node.type === 'worker_narrator') {
+            newStatus = 'weaving';
+            newLoad = 100;
+        } else if (node.type === 'worker_sentinel') {
+             newStatus = 'scanning';
+             newLoad = 60 + Math.random() * 10;
+        }
+        
+        return { ...node, status: newStatus, load: newLoad };
+    }));
+  }, [stage]);
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-1.5 w-full">
       
-      {/* TRI-CORE PROCESSING UNIT */}
-      <div className="flex gap-2 h-auto">
-          
-          {/* LEFT: LOGIC CORE (45% width) */}
-          <div className="flex-1 bg-black/40 border border-emerald-900/30 rounded-lg p-2 overflow-hidden">
-             <div className="flex justify-between items-center mb-2 relative z-10">
-                 <span className="text-[9px] font-mono text-emerald-500/80 uppercase tracking-wider flex items-center gap-1">
-                    <Cpu size={8} /> Logic (30)
-                 </span>
-             </div>
-             <div className="grid grid-cols-5 gap-1 relative z-10">
-                {logicWorkers.map((node, i) => {
-                    const isActive = node.status === 'analyzing';
-                    return (
-                        <div key={node.id} className={`h-5 w-full rounded-sm transition-all duration-300 relative group border ${isActive ? 'bg-emerald-500/20 border-emerald-500/50 shadow-[0_0_4px_rgba(16,185,129,0.4)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
-                            <div className="absolute bottom-0 left-0 w-full bg-emerald-500/40 transition-all" style={{ height: `${node.load}%` }} />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-60 group-hover:opacity-100">
-                                {LOGIC_SPECIALIZATIONS[i]?.icon}
-                            </div>
-                        </div>
-                    );
-                })}
-             </div>
+      {/* TOP ROW: LOGIC (Left) | CONSCIOUSNESS (Mid) | CREATIVE (Right) */}
+      <div className="flex gap-1 h-[240px]">
+          {/* 80 Logic Nodes */}
+          <div className="flex-1 bg-zinc-900/30 border border-emerald-900/30 rounded-sm p-1.5 relative overflow-hidden flex flex-col">
+              <div className="text-[8px] font-mono text-emerald-600/70 mb-1 uppercase tracking-widest">Logic Core (80)</div>
+              <div className="flex-1 grid grid-cols-8 gap-0.5 content-start">
+                  {nodes.filter(n => n.type === 'worker_logic').map(node => (
+                      <div key={node.id} className={`h-2 w-2 rounded-[1px] transition-all duration-300 ${node.status === 'analyzing' ? 'bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.8)]' : 'bg-emerald-900/20'}`} title={node.specialization} />
+                  ))}
+              </div>
           </div>
 
-          {/* CENTER: GOLDEN CONSCIOUSNESS SPINE (10% width) */}
-          <div className="w-12 bg-black/40 border border-amber-500/30 rounded-lg p-1 overflow-hidden flex flex-col gap-1">
-             {consciousnessWorkers.map((node, i) => {
-                 const isActive = node.status === 'flow';
-                 return (
-                    <div key={node.id} className={`flex-1 w-full rounded-sm transition-all duration-500 relative border flex items-center justify-center ${isActive ? 'bg-amber-500/20 border-amber-500/60 shadow-[0_0_6px_rgba(245,158,11,0.5)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
-                         <div className={`transition-all duration-500 ${isActive ? 'text-amber-300 scale-110' : 'text-zinc-700 scale-90'}`}>
-                             {CONSCIOUSNESS_SPECIALIZATIONS[i]?.icon}
-                         </div>
+          {/* 25 Consciousness Nodes */}
+          <div className="w-20 bg-amber-950/10 border border-amber-900/30 rounded-sm p-1.5 flex flex-col relative overflow-hidden">
+               <div className="absolute inset-0 bg-amber-500/5 animate-pulse"></div>
+               <div className="text-[8px] font-mono text-amber-500/70 mb-1 text-center uppercase">Soul</div>
+               <div className="flex-1 flex flex-col gap-1">
+                   {nodes.filter(n => n.type === 'worker_consciousness').map(node => (
+                       <div key={node.id} className={`flex-1 w-full rounded-[1px] transition-all duration-500 ${node.status === 'flow' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]' : 'bg-amber-900/20'}`} title={node.specialization}></div>
+                   ))}
+               </div>
+          </div>
+
+          {/* 60 Genesis Nodes */}
+          <div className="flex-1 bg-zinc-900/30 border border-purple-900/30 rounded-sm p-1.5 relative overflow-hidden flex flex-col">
+              <div className="text-[8px] font-mono text-purple-600/70 mb-1 text-right uppercase tracking-widest">Genesis Swarm (60)</div>
+               <div className="flex-1 grid grid-cols-6 gap-0.5 content-start direction-rtl">
+                  {nodes.filter(n => n.type === 'worker_creative').map(node => (
+                      <div key={node.id} className={`h-2.5 w-2.5 rounded-[1px] transition-all duration-300 ${node.status === 'dreaming' ? 'bg-purple-400 shadow-[0_0_5px_rgba(192,132,252,0.8)]' : 'bg-purple-900/20'}`} title={node.specialization} />
+                  ))}
+              </div>
+          </div>
+      </div>
+
+      {/* MIDDLE ROW: NARRATIVE TITANS (50) */}
+      <div className="h-[100px] bg-cyan-950/10 border border-cyan-900/30 rounded-sm p-1.5 relative overflow-hidden flex flex-col">
+           <div className="flex justify-between items-center mb-1">
+               <div className="text-[8px] font-mono text-cyan-500/70 uppercase tracking-widest">Narrative Engine (50 Titans)</div>
+               <Feather size={10} className="text-cyan-500/50" />
+           </div>
+           <div className="flex-1 grid grid-cols-10 gap-1">
+               {nodes.filter(n => n.type === 'worker_narrator').map((node, idx) => (
+                   <div key={node.id} className={`flex items-center justify-center transition-all duration-500 ${node.status === 'weaving' ? 'scale-110' : 'opacity-50'}`} title={node.specialization}>
+                       <div className={`w-full h-full rounded-[2px] flex items-center justify-center ${node.status === 'weaving' ? 'bg-cyan-500 text-black shadow-lg' : 'bg-cyan-900/20 text-cyan-700'}`}>
+                           {NARRATIVE_TITANS[idx]?.icon || <PenTool size={6} />}
+                       </div>
+                   </div>
+               ))}
+           </div>
+      </div>
+
+      {/* BOTTOM ROW: ARCHIVE & ARBITERS */}
+      <div className="flex gap-1 h-16">
+           {/* Pale Archive (5) */}
+           <div className="flex-[2] bg-[#050c05] border border-[#1f2e1f] rounded-sm p-2 relative overflow-hidden flex items-center gap-4">
+                <div className="absolute inset-0 opacity-[0.1] mix-blend-overlay" style={{ backgroundImage: `repeating-linear-gradient(45deg, #000 0, #000 2px, transparent 2px, transparent 10px)` }}></div>
+                
+                {/* Sentinel */}
+                <div className="flex flex-col items-center gap-1 z-10">
+                    <div className="w-6 h-6 rounded-full border border-[#86efac] bg-[#064e3b]/30 flex items-center justify-center shadow-[0_0_10px_rgba(134,239,172,0.2)] animate-pulse">
+                        <ScanEye size={12} className="text-[#86efac]" />
                     </div>
-                 )
-             })}
-          </div>
+                    <span className="text-[6px] font-mono text-[#86efac] uppercase">Sentinel</span>
+                </div>
 
-          {/* RIGHT: GENESIS CORE (45% width) */}
-          <div className="flex-1 bg-black/40 border border-purple-900/30 rounded-lg p-2 overflow-hidden">
-             <div className="flex justify-between items-center mb-2 relative z-10">
-                 <span className="text-[9px] font-mono text-purple-400/80 uppercase tracking-wider flex items-center gap-1">
-                    <Sparkles size={8} /> Genesis (30)
-                 </span>
-             </div>
-             <div className="grid grid-cols-5 gap-1 relative z-10">
-                {creativeWorkers.map((node, i) => {
-                    const isActive = node.status === 'dreaming';
-                    return (
-                        <div key={node.id} className={`h-5 w-full rounded-sm transition-all duration-300 relative group border ${isActive ? 'bg-purple-500/20 border-purple-500/50 shadow-[0_0_4px_rgba(168,85,247,0.4)]' : 'bg-zinc-900/50 border-zinc-800'}`}>
-                            <div className="absolute bottom-0 left-0 w-full bg-purple-500/40 transition-all" style={{ height: `${node.load}%` }} />
-                            <div className={`absolute inset-0 flex items-center justify-center opacity-60 group-hover:opacity-100 ${isActive ? 'text-purple-300' : 'text-zinc-600'}`}>
-                                {CREATIVE_SPECIALIZATIONS[i]?.icon}
-                            </div>
-                        </div>
-                    );
-                })}
-             </div>
-          </div>
+                {/* Triad + Archivist */}
+                <div className="flex-1 flex items-center justify-center gap-2 z-10 border-l border-r border-[#1f2e1f]/50 px-4">
+                     {nodes.filter(n => n.type === 'worker_triad').map(node => (
+                         <div key={node.id} className={`h-8 w-2 rounded-sm transition-all duration-300 ${node.status === 'synthesizing' ? 'bg-[#86efac] shadow-[0_0_10px_rgba(134,239,172,0.8)]' : 'bg-[#064e3b]/20 border border-[#065f46]'}`} title={node.specialization} />
+                     ))}
+                </div>
 
-      </div>
+                <div className="flex flex-col items-center gap-1 z-10">
+                     <div className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${nodes.find(n => n.type === 'worker_archivist')?.status === 'synthesizing' ? 'bg-[#86efac] text-black' : 'border-[#86efac] text-[#86efac] bg-transparent'}`}>
+                         <Archive size={12} />
+                     </div>
+                     <span className="text-[6px] font-mono text-[#86efac] uppercase">Archivist</span>
+                </div>
+           </div>
 
-      {/* CENTRAL BUS */}
-      <div className="h-2 w-full flex items-center justify-center relative">
-          <div className="w-full h-[1px] bg-gradient-to-r from-emerald-900 via-amber-500/50 to-purple-900"></div>
-          {stage !== ProcessingStage.IDLE && (
-              <div className="absolute w-2 h-2 bg-amber-100 rounded-full shadow-[0_0_10px_#fbbf24] animate-ping"></div>
-          )}
-      </div>
-
-      {/* REVIEWER CORES (Split Logic/Narrative) */}
-      <div className="bg-zinc-900/20 border border-zinc-800/60 rounded-lg p-2 backdrop-blur-sm">
-          <div className="flex justify-between mb-2">
-              <span className="text-[9px] text-zinc-500 font-mono uppercase">Arbitration Layer (6 Cores)</span>
-          </div>
-          <div className="grid grid-cols-6 gap-2">
-              {/* 3 Logic Reviewers */}
-              {logicReviewers.map((node) => (
-                  <div key={node.id} className={`h-10 border rounded flex items-center justify-center transition-all ${node.status === 'reviewing' ? 'border-emerald-500 text-emerald-400 bg-emerald-900/10' : 'border-zinc-800 text-zinc-700'}`}>
-                      <ShieldCheck size={14} />
-                  </div>
-              ))}
-              {/* 3 Narrative Reviewers */}
-              {narrativeReviewers.map((node) => (
-                  <div key={node.id} className={`h-10 border rounded flex items-center justify-center transition-all ${node.status === 'reviewing' ? 'border-purple-500 text-purple-400 bg-purple-900/10' : 'border-zinc-800 text-zinc-700'}`}>
-                      <Feather size={14} />
-                  </div>
-              ))}
-          </div>
+           {/* Arbiters (5) */}
+           <div className="flex-1 bg-blue-950/10 border border-blue-900/30 rounded-sm p-2 flex items-center justify-center gap-2">
+                {nodes.filter(n => n.type.includes('reviewer')).map(node => (
+                    <div key={node.id} className={`w-4 h-4 rounded-sm flex items-center justify-center transition-all ${node.status === 'reviewing' ? 'bg-blue-500 text-white shadow-lg scale-110' : 'bg-blue-900/20 text-blue-700'}`} title={node.specialization}>
+                        <ShieldCheck size={10} />
+                    </div>
+                ))}
+           </div>
       </div>
     </div>
   );

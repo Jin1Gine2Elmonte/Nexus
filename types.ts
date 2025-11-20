@@ -19,8 +19,8 @@ export interface Message {
 
 export interface NodeStatus {
   id: number;
-  type: 'worker_logic' | 'worker_creative' | 'worker_consciousness' | 'reviewer_logic' | 'reviewer_narrative';
-  status: 'idle' | 'analyzing' | 'dreaming' | 'flow' | 'reviewing';
+  type: 'worker_logic' | 'worker_creative' | 'worker_consciousness' | 'worker_narrator' | 'worker_sentinel' | 'worker_triad' | 'worker_archivist' | 'reviewer_logic' | 'reviewer_narrative';
+  status: 'idle' | 'analyzing' | 'dreaming' | 'flow' | 'scanning' | 'synthesizing' | 'weaving' | 'reviewing' | 'archiving';
   load: number; // 0-100
   specialization: string;
   currentTask?: string;
@@ -28,12 +28,14 @@ export interface NodeStatus {
 
 export enum ProcessingStage {
   IDLE = 'IDLE',
-  DISTRIBUTING = 'DISTRIBUTING',   // Sending to 70 nodes
+  DISTRIBUTING = 'DISTRIBUTING',   // Sending to nodes
   ANALYZING = 'ANALYZING',         // Logic Swarm Active
   CREATING = 'CREATING',           // Genesis Swarm Active
   FLOWING = 'FLOWING',             // Consciousness Swarm Active
+  ARCHIVING = 'ARCHIVING',         // Pale Archive Active
+  WEAVING = 'WEAVING',             // Narrative Titans Active
   SYNTHESIZING = 'SYNTHESIZING',   // Merging
-  REVIEWING = 'REVIEWING',         // 6 Reviewer nodes
+  REVIEWING = 'REVIEWING',         // Reviewer nodes
   COMPLETE = 'COMPLETE'
 }
 
@@ -47,5 +49,5 @@ export interface LogEntry {
   timestamp: string;
   nodeId: string;
   message: string;
-  level: 'info' | 'warn' | 'success' | 'error' | 'cosmic' | 'golden';
+  level: 'info' | 'warn' | 'success' | 'error' | 'cosmic' | 'golden' | 'pale' | 'cyan';
 }

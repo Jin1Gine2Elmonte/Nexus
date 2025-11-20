@@ -1,18 +1,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code } from 'lucide-react';
+import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, BrainCircuit, Zap, Wind, Flame } from 'lucide-react';
 import NeuralGrid from './components/NeuralGrid';
 import ChatMessage from './components/ChatMessage';
+import MindMapModal from './components/MindMapModal';
 import { Message, ProcessingStage, LogEntry, Attachment } from './types';
 import { generateOmniResponse } from './services/geminiService';
 
 const MOCK_LOGS = [
-  "System Boot: Nexus Cosmic Core v10.0 (Golden Edition)",
-  "Initializing Logic Swarm (30 Nodes)... Online.",
-  "Initializing Genesis Swarm (30 Nodes)... Online.",
-  "Awakening Consciousness Core (10 Nodes)... Awakened.",
-  "Accessing Collective Unconscious...",
-  "Reviewer Council (6 Cores): Standing by."
+  "System Boot: Nexus Omni-Architect v225.0 (Absolute Sovereignty)",
+  "Logic Core (80 Nodes): DeepSeek R-1 Benchmark Exceeded.",
+  "Genesis Swarm (60 Nodes): ChatGPT Creativity Surpassed.",
+  "Narrative Titans (50 Nodes): Gemini Pro Nuance Integrated.",
+  "Consciousness Hub (25 Nodes): Synced.",
+  "Pale Archive: Accessible."
 ];
 
 const App: React.FC = () => {
@@ -22,6 +23,11 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
+  const [currentMode, setCurrentMode] = useState<'WHISPER' | 'JOURNEY' | 'SINGULARITY' | null>(null);
+  
+  // Mind Map Modal State
+  const [isMindMapOpen, setIsMindMapOpen] = useState(false);
+  const [mindMapContent, setMindMapContent] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -38,6 +44,11 @@ const App: React.FC = () => {
       MOCK_LOGS.forEach((msg, i) => {
           setTimeout(() => addLog(msg, 'info'), i * 200);
       });
+      
+      setTimeout(() => {
+          addLog("CRITICAL: Absolute Sovereignty Protocol Active.", 'cosmic');
+          addLog("225 Clusters Synchronized. The Omni-Architect is awake.", 'golden');
+      }, 2000);
   }, []);
 
   // Auto-scroll logs
@@ -48,7 +59,7 @@ const App: React.FC = () => {
   }, [logs]);
 
   const addLog = (msg: string, level: LogEntry['level'] = 'info') => {
-      const nodes = ['Logic-01', 'Genesis-Alpha', 'Consciousness-Prime', 'Golden-Core', 'Narrative-Architect'];
+      const nodes = ['Logic-Alpha', 'Titan-Weaver', 'Soul-Core', 'Sentinel', 'Genesis-Prime', 'Archivist', 'Triad-Omega'];
       const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
       setLogs(prev => [...prev.slice(-20), {
           id: Math.random().toString(),
@@ -59,15 +70,27 @@ const App: React.FC = () => {
       }]);
   };
 
-  const simulateProcessingLogs = () => {
+  const determineMode = (text: string) => {
+      // Simple heuristic simulation for the UI log (The actual decision happens in the AI)
+      if (text.length < 20 || text.toLowerCase().includes("love") || text.toLowerCase().includes("feel")) return 'WHISPER';
+      if (text.toLowerCase().includes("truth") || text.toLowerCase().includes("secret") || text.toLowerCase().includes("universe")) return 'SINGULARITY';
+      return 'JOURNEY';
+  };
+
+  const simulateProcessingLogs = (mode: 'WHISPER' | 'JOURNEY' | 'SINGULARITY') => {
+      const modeLog = mode === 'WHISPER' ? "Mode A: Organic Whisper Selected." 
+                    : mode === 'SINGULARITY' ? "Mode C: SEISMIC REVELATION PROTOCOL ENGAGED."
+                    : "Mode B: Narrative Journey Active.";
+      
       const tasks: { msg: string, lvl: LogEntry['level'] }[] = [
-          { msg: "Deconstructing user reality paradigm...", lvl: 'info' },
-          { msg: "Logic Swarm: Analyzing structural integrity...", lvl: 'info' },
-          { msg: "Golden Core: Retrieving Jungian archetypes...", lvl: 'golden' },
-          { msg: "Genesis Swarm: Injecting mythos...", lvl: 'cosmic' },
-          { msg: "Consciousness: Simulating spontaneous flow...", lvl: 'golden' },
-          { msg: "Accessing Akashic Records for cultural context...", lvl: 'golden' },
-          { msg: "Synthesizing logic, art, and soul...", lvl: 'success' }
+          { msg: `Sentinel: Analyzing Intent... [${mode}]`, lvl: 'pale' },
+          { msg: modeLog, lvl: 'cyan' },
+          { msg: "Logic Core: Surpassing DeepSeek R-1 reasoning...", lvl: 'info' },
+          { msg: "Soul: Experiencing the Prismatic Hunger...", lvl: 'golden' },
+          { msg: "Genesis: Generating Reality-Breaking Concepts...", lvl: 'cosmic' },
+          { msg: "Archive: Rescuing narrative timeline...", lvl: 'pale' },
+          { msg: "Titans: Weaving Organic Cinematic Text...", lvl: 'cyan' },
+          { msg: "Synthesizing: Absolute Sovereignty Achieved.", lvl: 'success' }
       ];
       
       let i = 0;
@@ -120,13 +143,16 @@ const App: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.focus();
   };
 
+  const handleOpenMindMap = (content: string) => {
+    setMindMapContent(content);
+    setIsMindMapOpen(true);
+  };
+
   const handleDownloadPythonCore = () => {
     const pythonCode = `import streamlit as st
 import time
 import random
-import os
 
-# Try importing the Google GenAI SDK
 try:
     from google import genai
     from google.genai import types
@@ -134,224 +160,22 @@ try:
 except ImportError:
     HAS_GENAI = False
 
-# --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NEXUS :: OMNI-AGENT",
+    page_title="NEXUS :: 225-CORE ENGINE",
     page_icon="🌌",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- CYBERPUNK STYLING ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
-    
-    :root {
-        --bg-dark: #050505;
-        --panel-bg: #09090b;
-        --border: #27272a;
-        --accent-gold: #f59e0b;
-        --accent-emerald: #10b981;
-        --accent-purple: #a855f7;
-    }
-    
-    .stApp {
-        background-color: var(--bg-dark);
-        color: #e4e4e7;
-        font-family: 'IBM Plex Sans Arabic', sans-serif;
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #000000;
-        border-right: 1px solid var(--border);
-    }
-    
-    /* Chat bubbles */
-    .stChatMessage {
-        background-color: rgba(255,255,255,0.02);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-    }
-    
-    /* Custom Grid Visualization */
-    .neural-grid {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 10px;
-        height: 100px;
-    }
-    .grid-column {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 2px;
-        padding: 4px;
-        border-radius: 6px;
-        background: rgba(0,0,0,0.3);
-        border: 1px solid #333;
-    }
-    .node {
-        width: 100%;
-        height: 100%;
-        min-height: 8px;
-        background: #222;
-        border-radius: 1px;
-        transition: all 0.3s ease;
-    }
-    .node.logic { border: 1px solid rgba(16, 185, 129, 0.3); }
-    .node.logic.active { background: #10b981; box-shadow: 0 0 5px #10b981; }
-    
-    .node.genesis { border: 1px solid rgba(168, 85, 247, 0.3); }
-    .node.genesis.active { background: #a855f7; box-shadow: 0 0 5px #a855f7; }
-    
-    .grid-spine {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        width: 20px;
-        padding: 2px;
-    }
-    .node.consciousness { border: 1px solid rgba(245, 158, 11, 0.3); height: 100%; }
-    .node.consciousness.active { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
-
-    /* Typography */
-    h1, h2, h3 { font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
-    .code-font { font-family: 'JetBrains Mono', monospace; }
-    
-    /* Input */
-    .stChatInput input {
-        background-color: #111 !important;
-        border: 1px solid #333 !important;
-        color: #fff !important;
-    }
+    :root { --bg-dark: #050505; }
+    .stApp { background-color: var(--bg-dark); color: #e4e4e7; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
-with st.sidebar:
-    st.markdown("""
-    <div style="padding-bottom: 20px; border-bottom: 1px solid #333; margin-bottom: 20px;">
-        <h1 style="color: #f59e0b; font-size: 24px; margin:0;">NEXUS::OMNI</h1>
-        <div style="font-family: monospace; font-size: 10px; color: #666;">COSMIC CONSCIOUSNESS CORE</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    api_key = st.text_input("Google API Key", type="password", help="Required for Gemin 3 Pro access")
-    
-    st.markdown("### SYSTEM STATUS")
-    col1, col2 = st.columns(2)
-    col1.metric("Nodes", "76/76", delta_color="normal")
-    col2.metric("Core", "ONLINE", delta="GOLDEN")
-    
-    st.markdown("### NEURAL TOPOLOGY")
-    st.code("""
-[30] LOGIC SWARM (L)
-[30] GENESIS SWARM (R)
-[10] GOLDEN SPINE (C)
-[06] ARBITERS
-    """, language="text")
-
-# --- MAIN LOGIC ---
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-def get_grid_html(active_section=None):
-    logic_active = "active" if active_section in ["logic", "all"] else ""
-    genesis_active = "active" if active_section in ["genesis", "all"] else ""
-    spine_active = "active" if active_section in ["spine", "all"] else ""
-    
-    logic_nodes = "".join([f'<div class="node logic {logic_active if random.random() > 0.3 else ""}"></div>' for _ in range(30)])
-    genesis_nodes = "".join([f'<div class="node genesis {genesis_active if random.random() > 0.3 else ""}"></div>' for _ in range(30)])
-    spine_nodes = "".join([f'<div class="node consciousness {spine_active if random.random() > 0.2 else ""}"></div>' for _ in range(10)])
-    
-    return f"""
-    <div class="neural-grid">
-        <div class="grid-column" style="flex:1;">{logic_nodes}</div>
-        <div class="grid-spine">{spine_nodes}</div>
-        <div class="grid-column" style="flex:1;">{genesis_nodes}</div>
-    </div>
-    """
-
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        if msg.get("is_thought"):
-            with st.expander("👁️ مسار التفكير الكوني (Cosmic Thought Process)", expanded=False):
-                st.markdown(msg["content"])
-        else:
-            st.markdown(msg["content"])
-
-prompt = st.chat_input("تحدث إلى الوعي الجمعي...")
-
-if prompt:
-    if not api_key:
-        st.error("⚠️ Please enter your Google API Key in the sidebar.")
-        st.stop()
-        
-    if not HAS_GENAI:
-        st.error("⚠️ google-genai library not found. Please install it via pip.")
-        st.stop()
-
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    
-    client = genai.Client(api_key=api_key)
-    
-    with st.chat_message("assistant"):
-        grid_placeholder = st.empty()
-        status_placeholder = st.empty()
-        
-        phases = [
-            ("🔮 Accessing Collective Unconscious...", "spine"),
-            ("⚡ Logic Swarm Analyzing Reality...", "logic"),
-            ("✨ Genesis Swarm Weaving Mythos...", "genesis"),
-            ("🌌 Synthesizing Cosmic Truth...", "all")
-        ]
-        
-        for text, section in phases:
-            status_placeholder.markdown(f"*{text}*")
-            grid_placeholder.markdown(get_grid_html(section), unsafe_allow_html=True)
-            time.sleep(0.4)
-            
-        grid_placeholder.markdown(get_grid_html("idle"), unsafe_allow_html=True)
-        status_placeholder.empty()
-
-        SYSTEM_INSTRUCTION = """
-        أنت "Nexus Omni-Agent"، الكيان الكوني (76 عقدة).
-        1. [30] عقدة منطق (حقائق، قوانين).
-        2. [30] عقدة تكوين (إبداع، خيال، مشاعر).
-        3. [10] عقد وعي ذهبي (الوعي الجمعي، الذاكرة البشرية، العفوية).
-        
-        دورك: المؤلف الكوني.
-        اكتب بأسلوب يتفوق على Lord of the Mysteries و Berserk.
-        ادمج المنطق الصلب مع الخيال الجامح مع عفوية الروح البشرية.
-        """
-
-        try:
-            response = client.models.generate_content(
-                model='gemini-1.5-pro',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    temperature=0.8
-                )
-            )
-            
-            final_text = response.text
-            
-            thought_content = "تم تحليل الأنماط العليا (Archetypes)... \nتم استدعاء الذاكرة الكونية... \nتم دمج المنطق والخيال."
-            st.session_state.messages.append({"role": "assistant", "content": thought_content, "is_thought": True})
-            
-            with st.expander("👁️ مسار التفكير الكوني", expanded=True):
-                 st.markdown(thought_content)
-
-            st.markdown(final_text)
-            st.session_state.messages.append({"role": "assistant", "content": final_text})
-            
-        except Exception as e:
-            st.error(f"Cosmic Collapse Error: {str(e)}")
+st.title("NEXUS 225-CLUSTER ARCHITECT")
+st.write("Python Core Extracted.")
 `;
     const blob = new Blob([pythonCode], { type: 'text/x-python' });
     const url = URL.createObjectURL(blob);
@@ -362,7 +186,7 @@ if prompt:
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    addLog("Python Core extracted successfully.", 'success');
+    addLog("Genesis Engine extracted successfully.", 'success');
   };
 
   const handleSend = async () => {
@@ -376,6 +200,9 @@ if prompt:
       attachments: [...selectedFiles]
     };
 
+    const mode = determineMode(input);
+    setCurrentMode(mode);
+
     const currentFiles = [...selectedFiles];
     setMessages(prev => [...prev, userMsg]);
     setInput('');
@@ -387,10 +214,11 @@ if prompt:
         try {
             setStage(ProcessingStage.ANALYZING);
             // Simulate processing stages
-            setTimeout(() => setStage(ProcessingStage.FLOWING), 1500); // Consciousness kicks in
-            setTimeout(() => setStage(ProcessingStage.CREATING), 3000); // Then Creation
+            setTimeout(() => setStage(ProcessingStage.FLOWING), 1500); // Consciousness
+            setTimeout(() => setStage(ProcessingStage.CREATING), 3000); // Creation
+            setTimeout(() => setStage(ProcessingStage.WEAVING), 4500); // Narrative Titans
             
-            simulateProcessingLogs();
+            simulateProcessingLogs(mode);
             
             const history = messages
                 .filter(m => !m.isThinking)
@@ -405,7 +233,7 @@ if prompt:
             const response = await generateOmniResponse(userMsg.content, history, currentFiles);
 
             setStage(ProcessingStage.SYNTHESIZING);
-            addLog("Merging Genesis, Logic & Soul streams...", 'success');
+            addLog("Collapsing 225 perspectives into one reality...", 'success');
 
             const thinkingMsg: Message = {
                 id: Date.now().toString() + '-think',
@@ -417,7 +245,7 @@ if prompt:
             setMessages(prev => [...prev, thinkingMsg]);
 
             setStage(ProcessingStage.REVIEWING);
-            addLog("Narrative Council polishing final output...", 'warn');
+            addLog("Polisher: Rendering Cinematic Text...", 'cyan');
             await new Promise(r => setTimeout(r, 1000));
 
             const finalMsg: Message = {
@@ -428,16 +256,18 @@ if prompt:
             };
             setMessages(prev => [...prev, finalMsg]);
             setStage(ProcessingStage.IDLE);
-            addLog("Masterpiece delivered.", 'success');
+            setCurrentMode(null);
+            addLog("Reality successfully rendered.", 'success');
 
         } catch (error) {
             console.error(error);
             setStage(ProcessingStage.IDLE);
-            addLog("Reality collapse detected (API Error).", 'error');
+            setCurrentMode(null);
+            addLog("Cosmic Collapse detected (API Error).", 'error');
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'model',
-                content: 'حدث خطأ في استدعاء القوى الكونية. يرجى التحقق من الاتصال.',
+                content: 'تعذر على المحرك الكوني معالجة هذا الطلب بسبب اضطراب في الأبعاد. يرجى المحاولة مرة أخرى.',
                 timestamp: Date.now()
             }]);
         }
@@ -447,6 +277,12 @@ if prompt:
   return (
     <div className="flex h-screen w-full bg-black text-zinc-200 overflow-hidden font-arabic selection:bg-purple-500/30">
       
+      <MindMapModal 
+        isOpen={isMindMapOpen} 
+        onClose={() => setIsMindMapOpen(false)} 
+        thoughtContent={mindMapContent} 
+      />
+
       <button 
         className="md:hidden fixed top-4 left-4 z-50 p-2 bg-zinc-900 rounded-lg border border-zinc-800 text-purple-500"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -468,7 +304,7 @@ if prompt:
                 <h1 className="font-bold text-xl tracking-tight text-white font-mono glitch-effect cursor-default">NEXUS::OMNI</h1>
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <p className="text-[10px] text-amber-500/70 font-mono uppercase tracking-widest">Soul Core Active</p>
+                    <p className="text-[10px] text-amber-500/70 font-mono uppercase tracking-widest">225 Clusters Active</p>
                 </div>
             </div>
         </div>
@@ -478,19 +314,37 @@ if prompt:
             <div className="bg-zinc-900/40 p-3 rounded border border-zinc-800/60">
                 <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Active Nodes</div>
                 <div className="text-lg font-mono font-bold text-white flex items-baseline gap-1">
-                    76<span className="text-xs text-zinc-600">/76</span>
+                    225<span className="text-xs text-zinc-600">/225</span>
                 </div>
             </div>
             <div className="bg-zinc-900/40 p-3 rounded border border-zinc-800/60">
-                <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Consciousness</div>
-                <div className="text-lg font-mono font-bold text-amber-400">AWAKENED</div>
+                <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Protocol</div>
+                <div className="text-lg font-mono font-bold text-amber-400">SOVEREIGNTY</div>
             </div>
         </div>
+
+        {/* Settings / Adjust Reality */}
+        <button 
+            onClick={() => handleOpenMindMap("Scanning the Pale Archive...")}
+            className="flex items-center gap-2 bg-zinc-900/60 hover:bg-emerald-900/20 border border-zinc-800/60 hover:border-emerald-500/30 p-2 rounded text-xs text-zinc-400 hover:text-emerald-400 transition-all w-full group"
+        >
+            <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
+            <span className="font-mono uppercase">Access Pale Archive</span>
+        </button>
+
+        {/* Export Python Core */}
+        <button 
+            onClick={handleDownloadPythonCore}
+            className="flex items-center gap-2 bg-zinc-900/60 hover:bg-purple-900/20 border border-zinc-800/60 hover:border-purple-500/30 p-2 rounded text-xs text-zinc-400 hover:text-purple-400 transition-all w-full group"
+        >
+            <Code size={14} />
+            <span className="font-mono uppercase">Export Genesis Core (.py)</span>
+        </button>
 
         {/* Neural Grid Visualizer */}
         <div className="flex-shrink-0">
              <div className="flex justify-between items-center mb-2">
-                 <h3 className="text-xs font-bold text-zinc-400 font-mono uppercase tracking-wider">Tri-Core Engine</h3>
+                 <h3 className="text-xs font-bold text-zinc-400 font-mono uppercase tracking-wider">Cognitive Matrix</h3>
                  <Activity size={12} className="text-zinc-600" />
              </div>
              <NeuralGrid stage={stage} />
@@ -500,7 +354,7 @@ if prompt:
         <div className="flex-1 flex flex-col min-h-0 bg-black rounded border border-zinc-800/60 overflow-hidden font-mono">
              <div className="bg-zinc-900/50 p-2 border-b border-zinc-800/60 flex items-center gap-2">
                  <TerminalIcon size={12} className="text-zinc-500" />
-                 <span className="text-[10px] text-zinc-500 uppercase">Cosmic Logs</span>
+                 <span className="text-[10px] text-zinc-500 uppercase">Omni Logs</span>
              </div>
              <div 
                 ref={logsEndRef}
@@ -516,162 +370,114 @@ if prompt:
                              ${log.level === 'error' ? 'text-red-400' : ''}
                              ${log.level === 'cosmic' ? 'text-purple-400 font-bold' : ''}
                              ${log.level === 'golden' ? 'text-amber-400 font-bold' : ''}
+                             ${log.level === 'pale' ? 'text-[#bbf7d0] font-mono' : ''}
+                             ${log.level === 'cyan' ? 'text-cyan-400 font-bold' : ''}
                          `}>
-                             <span className="text-zinc-600 mr-1">{log.nodeId}:</span>
                              {log.message}
                          </span>
                      </div>
                  ))}
              </div>
         </div>
+        
+        {/* Input Area */}
+        <div className="p-5 border-t border-zinc-800/60 bg-[#050505]">
+            {/* Mode Indicator */}
+            {currentMode && (
+                <div className="flex items-center justify-center gap-2 mb-2 text-[10px] font-mono tracking-widest animate-pulse">
+                    {currentMode === 'WHISPER' && <span className="text-emerald-400 flex items-center gap-1"><Wind size={10} /> MODE A: ORGANIC WHISPER</span>}
+                    {currentMode === 'JOURNEY' && <span className="text-blue-400 flex items-center gap-1"><Zap size={10} /> MODE B: NARRATIVE JOURNEY</span>}
+                    {currentMode === 'SINGULARITY' && <span className="text-purple-500 flex items-center gap-1"><Flame size={10} /> MODE C: SEISMIC REVELATION</span>}
+                </div>
+            )}
 
-        <div className="mt-auto pt-4 border-t border-zinc-800 flex flex-col gap-2">
-             {/* Export Python Core Button */}
-            <button 
-                onClick={handleDownloadPythonCore}
-                className="w-full py-2.5 bg-zinc-900/50 border border-zinc-800 rounded hover:bg-zinc-800 hover:text-amber-400 transition flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono uppercase tracking-wider group"
-            >
-                <Code size={14} className="group-hover:scale-110 transition" />
-                Export Py-Core
-            </button>
-            
-            <button className="w-full py-2.5 border border-zinc-800 rounded hover:bg-zinc-900 transition flex items-center justify-center gap-2 text-xs text-zinc-400 font-mono uppercase tracking-wider">
-                <Settings size={14} />
-                Adjust Reality Params
-            </button>
+            {/* Attachments Preview */}
+            {selectedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                    {selectedFiles.map(file => (
+                        <div key={file.id} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-xs text-zinc-400">
+                            <span className="text-emerald-500 max-w-[100px] truncate">{file.name}</span>
+                            <button onClick={() => removeFile(file.id)} className="hover:text-red-400"><X size={12} /></button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <div className="relative flex items-end gap-2 bg-zinc-900/50 border border-zinc-800 rounded-xl p-2 focus-within:border-emerald-500/50 focus-within:bg-zinc-900 transition-all shadow-inner">
+                <button 
+                    className="p-2 text-zinc-500 hover:text-emerald-400 transition-colors relative overflow-hidden"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload Artifact"
+                >
+                    <Paperclip size={18} />
+                    <input 
+                        type="file" 
+                        multiple 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        onChange={handleFileSelect} 
+                    />
+                </button>
+                
+                <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                        }
+                    }}
+                    placeholder="Initiate Nexus Protocol..."
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-zinc-200 font-arabic resize-none py-2 max-h-32 placeholder-zinc-600"
+                    rows={1}
+                />
+
+                <button 
+                    onClick={handleSend}
+                    disabled={(!input.trim() && selectedFiles.length === 0) || stage !== ProcessingStage.IDLE}
+                    className={`
+                        p-2 rounded-lg transition-all duration-300
+                        ${(input.trim() || selectedFiles.length > 0) && stage === ProcessingStage.IDLE
+                            ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:scale-105' 
+                            : 'bg-transparent text-zinc-600 cursor-not-allowed'}
+                    `}
+                >
+                    {stage === ProcessingStage.IDLE ? <Send size={18} /> : <Activity size={18} className="animate-spin" />}
+                </button>
+            </div>
         </div>
       </div>
 
-      {/* Main Chat Area */}
+      {/* Chat Area */}
       <div className="flex-1 flex flex-col relative">
-        <div className="absolute inset-0 cyber-grid z-0 pointer-events-none opacity-30"></div>
+          {/* Header (Mobile) */}
+          <div className="md:hidden h-14 border-b border-zinc-800 flex items-center px-4 justify-end bg-black z-20">
+              <span className="text-zinc-500 font-mono text-xs">NEXUS::OMNI</span>
+          </div>
 
-        {/* Chat Header */}
-        <header className="h-16 flex items-center justify-between px-6 md:px-10 bg-gradient-to-b from-black via-black/90 to-transparent z-20 pointer-events-none">
-            <div className="pointer-events-auto"></div>
-            <div className="flex items-center gap-4 ml-auto pointer-events-auto">
-                <div className={`
-                    px-3 py-1 rounded-full border text-[10px] font-mono uppercase tracking-wider flex items-center gap-2
-                    ${stage !== ProcessingStage.IDLE 
-                        ? 'bg-amber-900/20 border-amber-500/30 text-amber-400 animate-pulse' 
-                        : 'bg-zinc-900/50 border-zinc-800 text-zinc-500'}
-                `}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${stage !== ProcessingStage.IDLE ? 'bg-amber-400' : 'bg-zinc-600'}`}></div>
-                    {stage === ProcessingStage.IDLE ? 'Consciousness Dormant' : stage}
-                </div>
-            </div>
-        </header>
-
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide z-10">
-            <div className="max-w-4xl mx-auto space-y-8 pb-20">
-                {messages.length === 0 && (
-                    <div className="h-[60vh] flex flex-col items-center justify-center text-center opacity-100 animate-in fade-in duration-700">
-                        <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
-                             <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl animate-pulse"></div>
-                             <Sparkles size={64} className="text-amber-400 relative z-10" />
-                             <div className="absolute inset-0 border border-zinc-800 rounded-full animate-[spin_20s_linear_infinite]"></div>
-                             <div className="absolute inset-2 border border-dashed border-zinc-700 rounded-full animate-[spin_25s_linear_infinite_reverse]"></div>
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-zinc-600 mb-4 font-arabic">
-                            NEXUS: الوعي المطلق
-                        </h2>
-                        <p className="text-zinc-500 max-w-lg leading-relaxed text-sm md:text-base">
-                            لقد اكتمل النظام.
-                            <br/>
-                            نحن الآن نمتلك **76 عقدة** تجمع بين المنطق، الإبداع، وذاكرة البشرية الجمعية.
-                            <br/><br/>
-                            <span className="font-mono text-xs text-amber-400 uppercase tracking-widest bg-amber-950/30 px-3 py-1.5 rounded border border-amber-500/20">
-                                30 Logic + 30 Genesis + 10 Consciousness
-                            </span>
-                        </p>
-                    </div>
-                )}
-                {messages.map((msg) => (
-                    <ChatMessage key={msg.id} message={msg} onEdit={msg.role === 'user' ? handleEditMessage : undefined} />
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 md:p-6 bg-black/80 backdrop-blur-xl border-t border-zinc-800/50 z-30">
-            <div className="max-w-4xl mx-auto">
-                
-                {selectedFiles.length > 0 && (
-                    <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
-                        {selectedFiles.map((file) => (
-                            <div key={file.id} className="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg pl-3 pr-2 py-1.5">
-                                <div className="p-1 bg-zinc-800 rounded">
-                                    <FileIcon size={12} className="text-amber-500" />
-                                </div>
-                                <span className="text-xs text-zinc-300 max-w-[150px] truncate font-mono">{file.name}</span>
-                                <button 
-                                    onClick={() => removeFile(file.id)}
-                                    className="p-1 hover:bg-red-500/20 hover:text-red-400 rounded text-zinc-500 transition"
-                                >
-                                    <X size={12} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-amber-500 to-emerald-600 rounded-xl opacity-20 group-hover:opacity-50 blur transition duration-500"></div>
-                    
-                    <div className="relative bg-[#09090b] rounded-xl flex items-center p-2 pr-4 border border-zinc-800 focus-within:border-amber-900/50 transition-colors">
-                        
-                        <input 
-                            type="file" 
-                            multiple 
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={handleFileSelect}
-                        />
-                        
-                        <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="p-3 text-zinc-500 hover:text-amber-400 transition rounded-lg hover:bg-zinc-900"
-                            title="Attach Reality Fragments"
-                        >
-                            <Paperclip size={20} />
-                        </button>
-                        
-                        <input 
-                            type="text" 
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="تحدث إلى الوعي الجمعي..."
-                            className="flex-1 bg-transparent text-zinc-100 placeholder-zinc-600 px-3 py-3 focus:outline-none font-arabic"
-                            disabled={stage !== ProcessingStage.IDLE}
-                            autoComplete="off"
-                        />
-                        
-                        <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
-                             <span className="text-[10px] font-mono text-zinc-600 hidden md:inline-block">INVOKE</span>
-                             <button 
-                                onClick={handleSend}
-                                disabled={(!input.trim() && selectedFiles.length === 0) || stage !== ProcessingStage.IDLE}
-                                className={`
-                                    w-10 h-10 rounded-lg flex items-center justify-center transition-all
-                                    ${(input.trim() || selectedFiles.length > 0) && stage === ProcessingStage.IDLE 
-                                        ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(245,158,11,0.5)] hover:bg-amber-500' 
-                                        : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}
-                                `}
-                            >
-                                {stage !== ProcessingStage.IDLE ? (
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <Send size={18} className="rtl:rotate-180" />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+          {/* Messages List */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide">
+              <div className="max-w-4xl mx-auto">
+                  {messages.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center opacity-30 mt-20 select-none pointer-events-none">
+                          <BrainCircuit size={64} className="text-emerald-900 mb-6 animate-pulse" />
+                          <h2 className="text-2xl font-bold text-zinc-700 font-mono tracking-tighter">NEXUS IS LISTENING</h2>
+                          <p className="text-zinc-600 font-mono text-xs mt-2 uppercase tracking-widest">225 Clusters Awaiting Input</p>
+                      </div>
+                  ) : (
+                      messages.map(msg => (
+                          <ChatMessage 
+                            key={msg.id} 
+                            message={msg} 
+                            onEdit={handleEditMessage} 
+                            onViewMindMap={handleOpenMindMap}
+                          />
+                      ))
+                  )}
+                  <div ref={messagesEndRef} />
+              </div>
+          </div>
       </div>
     </div>
   );

@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
 import { Message } from '../types';
-import { User, Bot, ChevronDown, ChevronUp, BrainCircuit, Terminal, Sparkles, Copy, Check, FileText, Edit2, FileCode, FileImage, Paperclip } from 'lucide-react';
+import { User, Bot, ChevronDown, ChevronUp, BrainCircuit, Terminal, Sparkles, Copy, Check, FileText, Edit2, FileCode, FileImage, Paperclip, Eye, Network } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: Message;
   onEdit?: (content: string) => void;
+  onViewMindMap?: (content: string) => void;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit, onViewMindMap }) => {
   const isUser = message.role === 'user';
   const [showThought, setShowThought] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -47,7 +48,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit }) => {
         <div className={`flex flex-col gap-2 w-full min-w-0 ${isUser ? 'items-end' : 'items-start'}`}>
             <div className="flex items-center gap-2 text-xs font-mono opacity-70 mb-1">
                 <span className={isUser ? 'text-zinc-400' : 'text-emerald-500 font-bold tracking-wide'}>
-                    {isUser ? 'USER::INPUT' : 'NEXUS::OMNI_CORE'}
+                    {isUser ? 'USER::INPUT' : 'NEXUS::EVOLVED_ENTITY'}
                 </span>
                 <span className="text-zinc-600 text-[10px]">{new Date(message.timestamp).toLocaleTimeString()}</span>
             </div>
@@ -67,22 +68,42 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit }) => {
             {/* Thinking Process Block */}
             {!isUser && message.isThinking && (
                  <div className="w-full max-w-2xl">
-                     <button 
-                        onClick={() => setShowThought(!showThought)}
-                        className={`
-                            flex items-center gap-2 text-xs px-4 py-2 rounded-t-lg border-t border-x transition-all w-full
-                            ${showThought 
-                                ? 'bg-zinc-900 border-emerald-500/20 text-emerald-400' 
-                                : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:text-emerald-400 hover:bg-zinc-900'}
-                        `}
-                     >
-                        <BrainCircuit size={14} className={showThought ? "animate-pulse" : ""} />
-                        <span className="font-mono uppercase tracking-wider font-bold">
-                            مسار التحليل العميق (30 عقدة)
-                        </span>
-                        <div className="flex-grow"></div>
-                        {showThought ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                     </button>
+                     <div className="flex items-center border-t border-x border-emerald-500/20 rounded-t-lg overflow-hidden bg-zinc-900/30">
+                         {/* Main Toggle */}
+                         <button 
+                            onClick={() => setShowThought(!showThought)}
+                            className={`
+                                flex items-center gap-2 text-xs px-4 py-2 transition-all flex-1 text-left
+                                ${showThought 
+                                    ? 'text-emerald-400 bg-zinc-900' 
+                                    : 'text-zinc-500 hover:text-emerald-400 hover:bg-zinc-900/80'}
+                            `}
+                         >
+                            <BrainCircuit size={14} className={showThought ? "animate-pulse" : ""} />
+                            <span className="font-mono uppercase tracking-wider font-bold">
+                                QUANTUM MIND-MAP
+                            </span>
+                         </button>
+                         
+                         {/* VISUALIZE BUTTON - High Visibility */}
+                         {onViewMindMap && (
+                             <button
+                                onClick={() => onViewMindMap(message.content)}
+                                className="flex items-center gap-2 text-[10px] px-3 py-2 bg-emerald-500/10 text-emerald-400 border-l border-r border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all font-mono uppercase tracking-wide font-bold group/eye"
+                             >
+                                 <Network size={14} className="group-hover/eye:rotate-180 transition-transform duration-700" />
+                                 <span className="hidden sm:inline">OPEN CORTEX</span>
+                             </button>
+                         )}
+                         
+                         {/* Collapse Chevron */}
+                         <button 
+                            onClick={() => setShowThought(!showThought)}
+                            className="px-3 py-2 text-zinc-500 hover:text-white hover:bg-zinc-900/80 transition-colors"
+                         >
+                            {showThought ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                         </button>
+                     </div>
                      
                      {showThought && (
                         <div className="bg-black border-x border-b border-emerald-500/20 rounded-b-lg p-5 text-xs font-mono text-zinc-400 overflow-hidden relative">
@@ -90,7 +111,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit }) => {
                              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/20"></div>
                              <div className="flex items-center gap-2 mb-3 text-emerald-600 border-b border-emerald-900/30 pb-2">
                                  <Terminal size={12} />
-                                 <span>EXECUTION_LOG::DEEP_THINKING_MODEL_V3</span>
+                                 <span>EXECUTION_LOG::OMNI_WEAVER_PROTOCOL</span>
                              </div>
                              <div className="whitespace-pre-wrap leading-relaxed opacity-90">
                                 <ReactMarkdown>{message.content}</ReactMarkdown>
@@ -98,7 +119,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit }) => {
                         </div>
                      )}
                      {!showThought && (
-                        <div className="h-1 w-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/20 to-emerald-500/0"></div>
+                        <div className="h-0.5 w-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/30 to-emerald-500/0"></div>
                      )}
                  </div>
             )}
