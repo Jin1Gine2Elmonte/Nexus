@@ -85,9 +85,9 @@ const App: React.FC = () => {
       const tasks: { msg: string, lvl: LogEntry['level'] }[] = [
           { msg: `Sentinel: Analyzing Intent... [${mode}]`, lvl: 'pale' },
           { msg: modeLog, lvl: 'cyan' },
-          { msg: "Logic Core: Surpassing DeepSeek R-1 reasoning...", lvl: 'info' },
-          { msg: "Soul: Experiencing the Prismatic Hunger...", lvl: 'golden' },
-          { msg: "Genesis: Generating Reality-Breaking Concepts...", lvl: 'cosmic' },
+          { msg: "Logic Core: Building Causal Skeleton...", lvl: 'info' },
+          { msg: "Soul: Blending Logic with Implicit Memory...", lvl: 'golden' },
+          { msg: "Genesis: Igniting 60 Creative Sparks...", lvl: 'cosmic' },
           { msg: "Archive: Rescuing narrative timeline...", lvl: 'pale' },
           { msg: "Titans: Weaving Organic Cinematic Text...", lvl: 'cyan' },
           { msg: "Synthesizing: Absolute Sovereignty Achieved.", lvl: 'success' }
