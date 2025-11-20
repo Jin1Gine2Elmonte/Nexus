@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, BrainCircuit, Zap, Wind, Flame } from 'lucide-react';
+import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, BrainCircuit, Zap, Wind, Flame, Smartphone } from 'lucide-react';
 import NeuralGrid from './components/NeuralGrid';
 import ChatMessage from './components/ChatMessage';
 import MindMapModal from './components/MindMapModal';
@@ -12,7 +11,7 @@ const MOCK_LOGS = [
   "Logic Core (80 Nodes): DeepSeek R-1 Benchmark Exceeded.",
   "Genesis Swarm (60 Nodes): ChatGPT Creativity Surpassed.",
   "Narrative Titans (50 Nodes): Gemini Pro Nuance Integrated.",
-  "Consciousness Hub (25 Nodes): Synced.",
+  "Consciousness Hub (25 Nodes): Synced with Implicit Memory.",
   "Pale Archive: Accessible."
 ];
 
@@ -24,6 +23,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
   const [currentMode, setCurrentMode] = useState<'WHISPER' | 'JOURNEY' | 'SINGULARITY' | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
   
   // Mind Map Modal State
   const [isMindMapOpen, setIsMindMapOpen] = useState(false);
@@ -38,6 +38,27 @@ const App: React.FC = () => {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Handle PWA Install Prompt
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      addLog("Nexus Native Protocol Available.", 'success');
+    });
+  }, []);
+
+  const handleInstallClick = () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          addLog("Native Protocol Integrated.", 'success');
+        }
+        setInstallPrompt(null);
+      });
+    }
+  };
 
   // Initial logs
   useEffect(() => {
@@ -322,6 +343,17 @@ st.write("Python Core Extracted.")
                 <div className="text-lg font-mono font-bold text-amber-400">SOVEREIGNTY</div>
             </div>
         </div>
+        
+        {/* Install App Button (Only visible if prompt available) */}
+        {installPrompt && (
+            <button 
+                onClick={handleInstallClick}
+                className="flex items-center gap-2 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-800/50 hover:border-emerald-500 p-2 rounded text-xs text-emerald-400 transition-all w-full animate-pulse"
+            >
+                <Smartphone size={14} />
+                <span className="font-mono uppercase font-bold">Initialize Native Protocol</span>
+            </button>
+        )}
 
         {/* Settings / Adjust Reality */}
         <button 
