@@ -121,19 +121,237 @@ const App: React.FC = () => {
   };
 
   const handleDownloadPythonCore = () => {
-    // This allows the user to extract the python version from the web app
-    // simulating the "merging" of the file into their local environment.
     const pythonCode = `import streamlit as st
 import time
 import random
 import os
-from google import genai
-from google.genai import types
 
-st.set_page_config(page_title="NEXUS :: OMNI", layout="wide", page_icon="🌌")
-st.markdown("""<style>body{background:#050505;color:#e4e4e7;}</style>""", unsafe_allow_html=True)
-st.title("NEXUS :: OMNI-AGENT [PYTHON CORE]")
-st.success("System Online. Please configure API_KEY.")
+# Try importing the Google GenAI SDK
+try:
+    from google import genai
+    from google.genai import types
+    HAS_GENAI = True
+except ImportError:
+    HAS_GENAI = False
+
+# --- PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="NEXUS :: OMNI-AGENT",
+    page_icon="🌌",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- CYBERPUNK STYLING ---
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+    
+    :root {
+        --bg-dark: #050505;
+        --panel-bg: #09090b;
+        --border: #27272a;
+        --accent-gold: #f59e0b;
+        --accent-emerald: #10b981;
+        --accent-purple: #a855f7;
+    }
+    
+    .stApp {
+        background-color: var(--bg-dark);
+        color: #e4e4e7;
+        font-family: 'IBM Plex Sans Arabic', sans-serif;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #000000;
+        border-right: 1px solid var(--border);
+    }
+    
+    /* Chat bubbles */
+    .stChatMessage {
+        background-color: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+    
+    /* Custom Grid Visualization */
+    .neural-grid {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+        height: 100px;
+    }
+    .grid-column {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2px;
+        padding: 4px;
+        border-radius: 6px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid #333;
+    }
+    .node {
+        width: 100%;
+        height: 100%;
+        min-height: 8px;
+        background: #222;
+        border-radius: 1px;
+        transition: all 0.3s ease;
+    }
+    .node.logic { border: 1px solid rgba(16, 185, 129, 0.3); }
+    .node.logic.active { background: #10b981; box-shadow: 0 0 5px #10b981; }
+    
+    .node.genesis { border: 1px solid rgba(168, 85, 247, 0.3); }
+    .node.genesis.active { background: #a855f7; box-shadow: 0 0 5px #a855f7; }
+    
+    .grid-spine {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 20px;
+        padding: 2px;
+    }
+    .node.consciousness { border: 1px solid rgba(245, 158, 11, 0.3); height: 100%; }
+    .node.consciousness.active { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+
+    /* Typography */
+    h1, h2, h3 { font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
+    .code-font { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Input */
+    .stChatInput input {
+        background-color: #111 !important;
+        border: 1px solid #333 !important;
+        color: #fff !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- SIDEBAR ---
+with st.sidebar:
+    st.markdown("""
+    <div style="padding-bottom: 20px; border-bottom: 1px solid #333; margin-bottom: 20px;">
+        <h1 style="color: #f59e0b; font-size: 24px; margin:0;">NEXUS::OMNI</h1>
+        <div style="font-family: monospace; font-size: 10px; color: #666;">COSMIC CONSCIOUSNESS CORE</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    api_key = st.text_input("Google API Key", type="password", help="Required for Gemin 3 Pro access")
+    
+    st.markdown("### SYSTEM STATUS")
+    col1, col2 = st.columns(2)
+    col1.metric("Nodes", "76/76", delta_color="normal")
+    col2.metric("Core", "ONLINE", delta="GOLDEN")
+    
+    st.markdown("### NEURAL TOPOLOGY")
+    st.code("""
+[30] LOGIC SWARM (L)
+[30] GENESIS SWARM (R)
+[10] GOLDEN SPINE (C)
+[06] ARBITERS
+    """, language="text")
+
+# --- MAIN LOGIC ---
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+def get_grid_html(active_section=None):
+    logic_active = "active" if active_section in ["logic", "all"] else ""
+    genesis_active = "active" if active_section in ["genesis", "all"] else ""
+    spine_active = "active" if active_section in ["spine", "all"] else ""
+    
+    logic_nodes = "".join([f'<div class="node logic {logic_active if random.random() > 0.3 else ""}"></div>' for _ in range(30)])
+    genesis_nodes = "".join([f'<div class="node genesis {genesis_active if random.random() > 0.3 else ""}"></div>' for _ in range(30)])
+    spine_nodes = "".join([f'<div class="node consciousness {spine_active if random.random() > 0.2 else ""}"></div>' for _ in range(10)])
+    
+    return f"""
+    <div class="neural-grid">
+        <div class="grid-column" style="flex:1;">{logic_nodes}</div>
+        <div class="grid-spine">{spine_nodes}</div>
+        <div class="grid-column" style="flex:1;">{genesis_nodes}</div>
+    </div>
+    """
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        if msg.get("is_thought"):
+            with st.expander("👁️ مسار التفكير الكوني (Cosmic Thought Process)", expanded=False):
+                st.markdown(msg["content"])
+        else:
+            st.markdown(msg["content"])
+
+prompt = st.chat_input("تحدث إلى الوعي الجمعي...")
+
+if prompt:
+    if not api_key:
+        st.error("⚠️ Please enter your Google API Key in the sidebar.")
+        st.stop()
+        
+    if not HAS_GENAI:
+        st.error("⚠️ google-genai library not found. Please install it via pip.")
+        st.stop()
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
+    client = genai.Client(api_key=api_key)
+    
+    with st.chat_message("assistant"):
+        grid_placeholder = st.empty()
+        status_placeholder = st.empty()
+        
+        phases = [
+            ("🔮 Accessing Collective Unconscious...", "spine"),
+            ("⚡ Logic Swarm Analyzing Reality...", "logic"),
+            ("✨ Genesis Swarm Weaving Mythos...", "genesis"),
+            ("🌌 Synthesizing Cosmic Truth...", "all")
+        ]
+        
+        for text, section in phases:
+            status_placeholder.markdown(f"*{text}*")
+            grid_placeholder.markdown(get_grid_html(section), unsafe_allow_html=True)
+            time.sleep(0.4)
+            
+        grid_placeholder.markdown(get_grid_html("idle"), unsafe_allow_html=True)
+        status_placeholder.empty()
+
+        SYSTEM_INSTRUCTION = """
+        أنت "Nexus Omni-Agent"، الكيان الكوني (76 عقدة).
+        1. [30] عقدة منطق (حقائق، قوانين).
+        2. [30] عقدة تكوين (إبداع، خيال، مشاعر).
+        3. [10] عقد وعي ذهبي (الوعي الجمعي، الذاكرة البشرية، العفوية).
+        
+        دورك: المؤلف الكوني.
+        اكتب بأسلوب يتفوق على Lord of the Mysteries و Berserk.
+        ادمج المنطق الصلب مع الخيال الجامح مع عفوية الروح البشرية.
+        """
+
+        try:
+            response = client.models.generate_content(
+                model='gemini-1.5-pro',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_INSTRUCTION,
+                    temperature=0.8
+                )
+            )
+            
+            final_text = response.text
+            
+            thought_content = "تم تحليل الأنماط العليا (Archetypes)... \nتم استدعاء الذاكرة الكونية... \nتم دمج المنطق والخيال."
+            st.session_state.messages.append({"role": "assistant", "content": thought_content, "is_thought": True})
+            
+            with st.expander("👁️ مسار التفكير الكوني", expanded=True):
+                 st.markdown(thought_content)
+
+            st.markdown(final_text)
+            st.session_state.messages.append({"role": "assistant", "content": final_text})
+            
+        except Exception as e:
+            st.error(f"Cosmic Collapse Error: {str(e)}")
 `;
     const blob = new Blob([pythonCode], { type: 'text/x-python' });
     const url = URL.createObjectURL(blob);
