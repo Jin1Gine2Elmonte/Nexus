@@ -1,16 +1,18 @@
 
 import React, { useState } from 'react';
 import { Message } from '../types';
-import { User, Bot, ChevronDown, ChevronUp, BrainCircuit, Terminal, Sparkles, Copy, Check, FileText, Edit2, FileCode, FileImage, Paperclip, Eye, Network } from 'lucide-react';
+import { User, Bot, ChevronDown, ChevronUp, BrainCircuit, Terminal, Sparkles, Copy, Check, FileText, Edit2, FileCode, FileImage, Paperclip, Eye, Network, Globe, ExternalLink, Play, Pause, Volume2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: Message;
   onEdit?: (content: string) => void;
   onViewMindMap?: (content: string) => void;
+  onPlayAudio?: (base64: string) => void;
+  isPlaying?: boolean;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit, onViewMindMap }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit, onViewMindMap, onPlayAudio, isPlaying }) => {
   const isUser = message.role === 'user';
   const [showThought, setShowThought] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -27,6 +29,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit, onViewMindMa
     if (mimeType.includes('code') || mimeType.includes('javascript') || mimeType.includes('html')) return <FileCode size={14} />;
     return <Paperclip size={14} />;
   };
+
+  const hasGrounding = message.groundingMetadata?.groundingChunks && message.groundingMetadata.groundingChunks.length > 0;
 
   return (
     <div className={`flex w-full mb-8 ${isUser ? 'justify-start' : 'justify-start'} group`}>
@@ -186,8 +190,44 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onEdit, onViewMindMa
                         </ReactMarkdown>
                     </div>
 
+                    {/* Grounding Sources (Google Search) */}
+                    {hasGrounding && (
+                        <div className="mt-6 border-t border-zinc-700/50 pt-3">
+                             <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono mb-2 uppercase tracking-wider">
+                                 <Globe size={12} className="text-blue-400" />
+                                 <span>Nexus Knowledge Graph</span>
+                             </div>
+                             <div className="flex flex-wrap gap-2">
+                                 {message.groundingMetadata?.groundingChunks.map((chunk, idx) => chunk.web ? (
+                                     <a 
+                                        key={idx} 
+                                        href={chunk.web.uri} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800/50 hover:bg-zinc-700 border border-zinc-700 hover:border-blue-500/50 rounded-lg text-[10px] text-zinc-300 hover:text-blue-300 transition-all group/link"
+                                     >
+                                         <span className="max-w-[150px] truncate">{chunk.web.title}</span>
+                                         <ExternalLink size={10} className="opacity-50 group-hover/link:opacity-100" />
+                                     </a>
+                                 ) : null)}
+                             </div>
+                        </div>
+                    )}
+
                     {/* Message Actions */}
                     <div className="flex justify-end items-center gap-3 mt-4 pt-3 border-t border-zinc-800/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {message.audioData && onPlayAudio && (
+                             <button
+                                onClick={() => onPlayAudio(message.audioData!)}
+                                className={`
+                                    flex items-center gap-1 text-[10px] font-mono uppercase transition
+                                    ${isPlaying ? 'text-amber-400 animate-pulse' : 'text-zinc-500 hover:text-amber-400'}
+                                `}
+                             >
+                                 {isPlaying ? <Pause size={10} /> : <Play size={10} />}
+                                 {isPlaying ? 'Broadcasting...' : 'Play Neural Voice'}
+                             </button>
+                        )}
                         {isUser && onEdit && (
                             <button 
                                 onClick={() => onEdit(message.content)}

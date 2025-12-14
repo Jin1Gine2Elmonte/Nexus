@@ -6,6 +6,13 @@ export interface Attachment {
   data: string; // Base64 string
 }
 
+export interface GroundingChunk {
+  web?: {
+    uri: string;
+    title: string;
+  };
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'model';
@@ -15,6 +22,10 @@ export interface Message {
   thinkingDuration?: number;
   reviewStatus?: 'pending' | 'approved' | 'refined';
   attachments?: Attachment[];
+  groundingMetadata?: {
+    groundingChunks: GroundingChunk[];
+  };
+  audioData?: string; // Base64 encoded audio
 }
 
 export interface NodeStatus {
@@ -36,12 +47,14 @@ export enum ProcessingStage {
   WEAVING = 'WEAVING',             // Narrative Titans Active
   SYNTHESIZING = 'SYNTHESIZING',   // Merging
   REVIEWING = 'REVIEWING',         // Reviewer nodes
-  COMPLETE = 'COMPLETE'
+  COMPLETE = 'COMPLETE',
+  SPEAKING = 'SPEAKING'            // Audio generation
 }
 
 export interface OmniResponse {
   thoughtProcess: string;
   finalResponse: string;
+  groundingMetadata?: any;
 }
 
 export interface LogEntry {
@@ -50,4 +63,11 @@ export interface LogEntry {
   nodeId: string;
   message: string;
   level: 'info' | 'warn' | 'success' | 'error' | 'cosmic' | 'golden' | 'pale' | 'cyan';
+}
+
+export interface SyncStatus {
+    isSynced: boolean;
+    lastSyncTime: number | null;
+    cloudProvider: 'none' | 'drive';
+    isSyncing: boolean;
 }

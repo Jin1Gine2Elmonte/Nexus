@@ -1,17 +1,19 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, BrainCircuit, Zap, Wind, Flame, Smartphone } from 'lucide-react';
+import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, Cloud, Database, RefreshCw, Trash2, HardDrive, Mic, Volume2 } from 'lucide-react';
 import NeuralGrid from './components/NeuralGrid';
 import ChatMessage from './components/ChatMessage';
 import MindMapModal from './components/MindMapModal';
-import { Message, ProcessingStage, LogEntry, Attachment } from './types';
-import { generateOmniResponse } from './services/geminiService';
+import { Message, ProcessingStage, LogEntry, Attachment, SyncStatus } from './types';
+import { generateOmniResponse, generateAudioBriefing } from './services/geminiService';
+import { loadLocalMemory, saveLocalMemory, clearLocalMemory, initGoogleDrive, signInToDrive, saveToDrive } from './services/storageService';
 
 const MOCK_LOGS = [
-  "System Boot: Nexus Omni-Architect v225.0 (Absolute Sovereignty)",
-  "Logic Core (80 Nodes): DeepSeek R-1 Benchmark Exceeded.",
-  "Genesis Swarm (60 Nodes): ChatGPT Creativity Surpassed.",
-  "Narrative Titans (50 Nodes): Gemini Pro Nuance Integrated.",
-  "Consciousness Hub (25 Nodes): Synced with Implicit Memory.",
+  "System Boot: Nexus Omni-Architect v225.0 (Prismatic Edition)",
+  "Logic Core (80 Nodes): Online.",
+  "Genesis Swarm (60 Nodes): Online.",
+  "Narrative Titans (50 Nodes): Online.",
+  "Consciousness Hub (25 Nodes): Synced.",
   "Pale Archive: Accessible."
 ];
 
@@ -22,16 +24,59 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<Attachment[]>([]);
-  const [currentMode, setCurrentMode] = useState<'WHISPER' | 'JOURNEY' | 'SINGULARITY' | null>(null);
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
   
+  // Storage & Sync State
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+      isSynced: false,
+      lastSyncTime: null,
+      cloudProvider: 'none',
+      isSyncing: false
+  });
+
   // Mind Map Modal State
   const [isMindMapOpen, setIsMindMapOpen] = useState(false);
   const [mindMapContent, setMindMapContent] = useState('');
   
+  // Audio State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- INITIALIZATION & MEMORY LOADING ---
+  
+  useEffect(() => {
+    // 1. Load Local Memory
+    const localMsgs = loadLocalMemory();
+    if (localMsgs.length > 0) {
+        setMessages(localMsgs);
+        addLog(`Memory Restored: ${localMsgs.length} fragments loaded from Local Core.`, 'pale');
+    }
+
+    // 2. Initialize Logs
+    MOCK_LOGS.forEach((msg, i) => {
+        setTimeout(() => addLog(msg, 'info'), i * 200);
+    });
+    
+    setTimeout(() => {
+        addLog("CRITICAL: Full Cognitive Expansion.", 'cosmic');
+        addLog("225 Clusters Active. The Omni-Architect is awake.", 'golden');
+    }, 2000);
+
+    // 3. Initialize Google Drive API (If Client ID exists)
+    initGoogleDrive(
+        () => {
+            setSyncStatus(prev => ({ ...prev, isSynced: true, cloudProvider: 'drive' }));
+            addLog("Neural Cloud Link: Established via Google Protocol.", 'success');
+        },
+        (err) => {
+            addLog("Neural Cloud Link: Connection Failed (Auth Error).", 'error');
+        }
+    );
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,38 +84,25 @@ const App: React.FC = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  // Handle PWA Install Prompt
-  useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-      addLog("Nexus Native Protocol Available.", 'success');
-    });
-  }, []);
+  // --- PERSISTENCE LOGIC ---
 
-  const handleInstallClick = () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      installPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
-          addLog("Native Protocol Integrated.", 'success');
-        }
-        setInstallPrompt(null);
-      });
-    }
-  };
-
-  // Initial logs
+  // Auto-save to Local Storage on every message change
   useEffect(() => {
-      MOCK_LOGS.forEach((msg, i) => {
-          setTimeout(() => addLog(msg, 'info'), i * 200);
-      });
-      
-      setTimeout(() => {
-          addLog("CRITICAL: Absolute Sovereignty Protocol Active.", 'cosmic');
-          addLog("225 Clusters Synchronized. The Omni-Architect is awake.", 'golden');
-      }, 2000);
-  }, []);
+      if (messages.length > 0) {
+          saveLocalMemory(messages);
+          // If Connected to Cloud, debounce save
+          if (syncStatus.cloudProvider === 'drive' && syncStatus.isSynced) {
+              const timeoutId = setTimeout(() => {
+                  setSyncStatus(prev => ({ ...prev, isSyncing: true }));
+                  saveToDrive(messages).then(() => {
+                       setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSyncTime: Date.now() }));
+                  });
+              }, 5000); // Save to cloud 5s after last message
+              return () => clearTimeout(timeoutId);
+          }
+      }
+  }, [messages, syncStatus.cloudProvider, syncStatus.isSynced]);
+
 
   // Auto-scroll logs
   useEffect(() => {
@@ -80,7 +112,7 @@ const App: React.FC = () => {
   }, [logs]);
 
   const addLog = (msg: string, level: LogEntry['level'] = 'info') => {
-      const nodes = ['Logic-Alpha', 'Titan-Weaver', 'Soul-Core', 'Sentinel', 'Genesis-Prime', 'Archivist', 'Triad-Omega'];
+      const nodes = ['Logic-Alpha', 'Titan-Weaver', 'Soul-Core', 'Sentinel', 'Genesis-Prime', 'Archivist'];
       const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
       setLogs(prev => [...prev.slice(-20), {
           id: Math.random().toString(),
@@ -91,27 +123,15 @@ const App: React.FC = () => {
       }]);
   };
 
-  const determineMode = (text: string) => {
-      // Simple heuristic simulation for the UI log (The actual decision happens in the AI)
-      if (text.length < 20 || text.toLowerCase().includes("love") || text.toLowerCase().includes("feel")) return 'WHISPER';
-      if (text.toLowerCase().includes("truth") || text.toLowerCase().includes("secret") || text.toLowerCase().includes("universe")) return 'SINGULARITY';
-      return 'JOURNEY';
-  };
-
-  const simulateProcessingLogs = (mode: 'WHISPER' | 'JOURNEY' | 'SINGULARITY') => {
-      const modeLog = mode === 'WHISPER' ? "Mode A: Organic Whisper Selected." 
-                    : mode === 'SINGULARITY' ? "Mode C: SEISMIC REVELATION PROTOCOL ENGAGED."
-                    : "Mode B: Narrative Journey Active.";
-      
+  const simulateProcessingLogs = () => {
       const tasks: { msg: string, lvl: LogEntry['level'] }[] = [
-          { msg: `Sentinel: Analyzing Intent... [${mode}]`, lvl: 'pale' },
-          { msg: modeLog, lvl: 'cyan' },
-          { msg: "Logic Core: Building Causal Skeleton...", lvl: 'info' },
-          { msg: "Soul: Blending Logic with Implicit Memory...", lvl: 'golden' },
-          { msg: "Genesis: Igniting 60 Creative Sparks...", lvl: 'cosmic' },
+          { msg: "Sentinel: Scanning void for unwritten tales...", lvl: 'pale' },
+          { msg: "Logic Core: Analyzing 2000 years of history...", lvl: 'info' },
+          { msg: "Soul: Experiencing the impact of the story...", lvl: 'golden' },
+          { msg: "Genesis: Simulating Cinematic Angles...", lvl: 'cosmic' },
           { msg: "Archive: Rescuing narrative timeline...", lvl: 'pale' },
-          { msg: "Titans: Weaving Organic Cinematic Text...", lvl: 'cyan' },
-          { msg: "Synthesizing: Absolute Sovereignty Achieved.", lvl: 'success' }
+          { msg: "Titans: Rendering Cinematic Text...", lvl: 'cyan' },
+          { msg: "Synthesizing: Mode [RESCUE] Selected.", lvl: 'success' }
       ];
       
       let i = 0;
@@ -169,7 +189,92 @@ const App: React.FC = () => {
     setIsMindMapOpen(true);
   };
 
+  // --- AUDIO LOGIC ---
+  
+  const handleGenerateAudio = async (textToRead: string, messageId: string) => {
+    if (stage !== ProcessingStage.IDLE) return;
+    
+    setStage(ProcessingStage.SPEAKING);
+    addLog("Initiating Neural Voice Synthesis...", 'cyan');
+
+    const audioBase64 = await generateAudioBriefing(textToRead.substring(0, 2000)); // Limit for speed
+    
+    if (audioBase64) {
+        setMessages(prev => prev.map(m => 
+            m.id === messageId ? { ...m, audioData: audioBase64 } : m
+        ));
+        addLog("Neural Voice synthesized successfully.", 'success');
+        playAudio(audioBase64);
+    } else {
+        addLog("Voice Synthesis Failed.", 'error');
+    }
+    setStage(ProcessingStage.IDLE);
+  };
+
+  const playAudio = async (base64String: string) => {
+      if (audioSourceRef.current) {
+          audioSourceRef.current.stop();
+          audioSourceRef.current = null;
+          setIsPlaying(false);
+          return; // Toggle behavior
+      }
+
+      try {
+          if (!audioContextRef.current) {
+              audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+          }
+
+          // Decode
+          const binaryString = atob(base64String);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          const audioBuffer = await audioContextRef.current.decodeAudioData(bytes.buffer);
+          
+          const source = audioContextRef.current.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(audioContextRef.current.destination);
+          
+          source.onended = () => {
+              setIsPlaying(false);
+              audioSourceRef.current = null;
+          };
+          
+          source.start(0);
+          audioSourceRef.current = source;
+          setIsPlaying(true);
+      } catch (e) {
+          console.error("Audio Playback Error:", e);
+          addLog("Audio Driver Failure.", 'error');
+      }
+  };
+
+  const handleCloudConnect = () => {
+      if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
+          addLog("WARNING: Neural Cloud Link requires CLIENT_ID. Check Config.", 'warn');
+          addLog("Simulating Neural Handshake...", 'info');
+          setTimeout(() => {
+             setSyncStatus(prev => ({ ...prev, isSynced: true, cloudProvider: 'none' })); 
+             addLog("Neural Link: Local Simulation Active.", 'success');
+          }, 1000);
+          return;
+      }
+      signInToDrive();
+  };
+  
+  const handleClearMemory = () => {
+      if (window.confirm("WARNING: Initiate Total Recall Wipe? This will erase local narrative threads.")) {
+          clearLocalMemory();
+          setMessages([]);
+          addLog("Memory Wipe Complete. Tabula Rasa.", 'error');
+      }
+  };
+
   const handleDownloadPythonCore = () => {
+    // Safe Python code string export
     const pythonCode = `import streamlit as st
 import time
 import random
@@ -221,9 +326,6 @@ st.write("Python Core Extracted.")
       attachments: [...selectedFiles]
     };
 
-    const mode = determineMode(input);
-    setCurrentMode(mode);
-
     const currentFiles = [...selectedFiles];
     setMessages(prev => [...prev, userMsg]);
     setInput('');
@@ -239,7 +341,7 @@ st.write("Python Core Extracted.")
             setTimeout(() => setStage(ProcessingStage.CREATING), 3000); // Creation
             setTimeout(() => setStage(ProcessingStage.WEAVING), 4500); // Narrative Titans
             
-            simulateProcessingLogs(mode);
+            simulateProcessingLogs();
             
             const history = messages
                 .filter(m => !m.isThinking)
@@ -266,24 +368,25 @@ st.write("Python Core Extracted.")
             setMessages(prev => [...prev, thinkingMsg]);
 
             setStage(ProcessingStage.REVIEWING);
-            addLog("Polisher: Rendering Cinematic Text...", 'cyan');
+            addLog("Arbiters: Final Polish...", 'cyan');
             await new Promise(r => setTimeout(r, 1000));
 
             const finalMsg: Message = {
                 id: Date.now().toString() + '-final',
                 role: 'model',
                 content: response.finalResponse,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                groundingMetadata: response.groundingMetadata
             };
             setMessages(prev => [...prev, finalMsg]);
             setStage(ProcessingStage.IDLE);
-            setCurrentMode(null);
             addLog("Reality successfully rendered.", 'success');
+            
+            // Auto-trigger Audio for short responses if requested? No, keep manual for "NotebookLM" feel.
 
         } catch (error) {
             console.error(error);
             setStage(ProcessingStage.IDLE);
-            setCurrentMode(null);
             addLog("Cosmic Collapse detected (API Error).", 'error');
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
@@ -340,38 +443,54 @@ st.write("Python Core Extracted.")
             </div>
             <div className="bg-zinc-900/40 p-3 rounded border border-zinc-800/60">
                 <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Protocol</div>
-                <div className="text-lg font-mono font-bold text-amber-400">SOVEREIGNTY</div>
+                <div className="text-lg font-mono font-bold text-amber-400">OMNI-ARCHITECT</div>
             </div>
         </div>
-        
-        {/* Install App Button (Only visible if prompt available) */}
-        {installPrompt && (
-            <button 
-                onClick={handleInstallClick}
-                className="flex items-center gap-2 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-800/50 hover:border-emerald-500 p-2 rounded text-xs text-emerald-400 transition-all w-full animate-pulse"
-            >
-                <Smartphone size={14} />
-                <span className="font-mono uppercase font-bold">Initialize Native Protocol</span>
-            </button>
-        )}
 
-        {/* Settings / Adjust Reality */}
-        <button 
-            onClick={() => handleOpenMindMap("Scanning the Pale Archive...")}
-            className="flex items-center gap-2 bg-zinc-900/60 hover:bg-emerald-900/20 border border-zinc-800/60 hover:border-emerald-500/30 p-2 rounded text-xs text-zinc-400 hover:text-emerald-400 transition-all w-full group"
-        >
-            <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
-            <span className="font-mono uppercase">Access Pale Archive</span>
-        </button>
+        {/* Memory Core / Cloud Sync UI */}
+        <div className="bg-zinc-900/30 p-3 rounded border border-zinc-800/60">
+             <div className="flex justify-between items-center mb-2">
+                 <div className="flex items-center gap-2">
+                     <Database size={12} className={syncStatus.isSynced ? "text-emerald-400" : "text-zinc-500"} />
+                     <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">Memory Core</span>
+                 </div>
+                 {syncStatus.isSyncing && <RefreshCw size={10} className="text-amber-400 animate-spin" />}
+             </div>
+             
+             <div className="flex flex-col gap-2">
+                 {/* Local Storage Indicator */}
+                 <div className="flex items-center justify-between text-xs px-2 py-1 bg-zinc-900 rounded border border-zinc-800">
+                     <span className="text-zinc-400 flex items-center gap-2">
+                         <HardDrive size={10} /> Local
+                     </span>
+                     <span className="text-emerald-500 font-mono">ACTIVE</span>
+                 </div>
 
-        {/* Export Python Core */}
-        <button 
-            onClick={handleDownloadPythonCore}
-            className="flex items-center gap-2 bg-zinc-900/60 hover:bg-purple-900/20 border border-zinc-800/60 hover:border-purple-500/30 p-2 rounded text-xs text-zinc-400 hover:text-purple-400 transition-all w-full group"
-        >
-            <Code size={14} />
-            <span className="font-mono uppercase">Export Genesis Core (.py)</span>
-        </button>
+                 {/* Cloud Connect */}
+                 {syncStatus.isSynced ? (
+                     <div className="flex items-center justify-between text-xs px-2 py-1 bg-emerald-900/10 rounded border border-emerald-500/20">
+                         <span className="text-emerald-400 flex items-center gap-2">
+                             <Cloud size={10} /> Google Drive
+                         </span>
+                         <span className="text-emerald-500 font-mono">LINKED</span>
+                     </div>
+                 ) : (
+                     <button 
+                        onClick={handleCloudConnect}
+                        className="w-full py-1.5 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded text-[10px] text-zinc-300 transition-colors uppercase font-mono"
+                     >
+                        <Cloud size={10} /> Connect Neural Cloud
+                     </button>
+                 )}
+                 
+                 <button 
+                     onClick={handleClearMemory}
+                     className="w-full mt-1 py-1 flex items-center justify-center gap-1 text-[10px] text-red-900/50 hover:text-red-400 hover:bg-red-900/10 rounded transition-colors uppercase font-mono"
+                 >
+                     <Trash2 size={10} /> Purge Local Data
+                 </button>
+             </div>
+        </div>
 
         {/* Neural Grid Visualizer */}
         <div className="flex-shrink-0">
@@ -402,114 +521,173 @@ st.write("Python Core Extracted.")
                              ${log.level === 'error' ? 'text-red-400' : ''}
                              ${log.level === 'cosmic' ? 'text-purple-400 font-bold' : ''}
                              ${log.level === 'golden' ? 'text-amber-400 font-bold' : ''}
-                             ${log.level === 'pale' ? 'text-[#bbf7d0] font-mono' : ''}
+                             ${log.level === 'pale' ? 'text-green-200 font-bold' : ''}
                              ${log.level === 'cyan' ? 'text-cyan-400 font-bold' : ''}
                          `}>
+                             <span className="text-zinc-600 mr-1">{log.nodeId}:</span>
                              {log.message}
                          </span>
                      </div>
                  ))}
              </div>
         </div>
-        
-        {/* Input Area */}
-        <div className="p-5 border-t border-zinc-800/60 bg-[#050505]">
-            {/* Mode Indicator */}
-            {currentMode && (
-                <div className="flex items-center justify-center gap-2 mb-2 text-[10px] font-mono tracking-widest animate-pulse">
-                    {currentMode === 'WHISPER' && <span className="text-emerald-400 flex items-center gap-1"><Wind size={10} /> MODE A: ORGANIC WHISPER</span>}
-                    {currentMode === 'JOURNEY' && <span className="text-blue-400 flex items-center gap-1"><Zap size={10} /> MODE B: NARRATIVE JOURNEY</span>}
-                    {currentMode === 'SINGULARITY' && <span className="text-purple-500 flex items-center gap-1"><Flame size={10} /> MODE C: SEISMIC REVELATION</span>}
-                </div>
-            )}
 
-            {/* Attachments Preview */}
-            {selectedFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
-                    {selectedFiles.map(file => (
-                        <div key={file.id} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-xs text-zinc-400">
-                            <span className="text-emerald-500 max-w-[100px] truncate">{file.name}</span>
-                            <button onClick={() => removeFile(file.id)} className="hover:text-red-400"><X size={12} /></button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <div className="relative flex items-end gap-2 bg-zinc-900/50 border border-zinc-800 rounded-xl p-2 focus-within:border-emerald-500/50 focus-within:bg-zinc-900 transition-all shadow-inner">
-                <button 
-                    className="p-2 text-zinc-500 hover:text-emerald-400 transition-colors relative overflow-hidden"
-                    onClick={() => fileInputRef.current?.click()}
-                    title="Upload Artifact"
-                >
-                    <Paperclip size={18} />
-                    <input 
-                        type="file" 
-                        multiple 
-                        ref={fileInputRef} 
-                        className="hidden" 
-                        onChange={handleFileSelect} 
-                    />
-                </button>
-                
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend();
-                        }
-                    }}
-                    placeholder="Initiate Nexus Protocol..."
-                    className="flex-1 bg-transparent border-none outline-none text-sm text-zinc-200 font-arabic resize-none py-2 max-h-32 placeholder-zinc-600"
-                    rows={1}
-                />
-
-                <button 
-                    onClick={handleSend}
-                    disabled={(!input.trim() && selectedFiles.length === 0) || stage !== ProcessingStage.IDLE}
-                    className={`
-                        p-2 rounded-lg transition-all duration-300
-                        ${(input.trim() || selectedFiles.length > 0) && stage === ProcessingStage.IDLE
-                            ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:scale-105' 
-                            : 'bg-transparent text-zinc-600 cursor-not-allowed'}
-                    `}
-                >
-                    {stage === ProcessingStage.IDLE ? <Send size={18} /> : <Activity size={18} className="animate-spin" />}
-                </button>
-            </div>
+        <div className="mt-auto pt-4 border-t border-zinc-800 flex flex-col gap-2">
+            <button 
+                onClick={handleDownloadPythonCore}
+                className="w-full py-2.5 bg-zinc-900/50 border border-zinc-800 rounded hover:bg-zinc-800 hover:text-amber-400 transition flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono uppercase tracking-wider group"
+            >
+                <Code size={14} className="group-hover:scale-110 transition" />
+                Export Py-Core
+            </button>
+            
+            <button 
+                onClick={() => setIsMindMapOpen(true)}
+                className="w-full py-2.5 border border-zinc-800 rounded hover:bg-zinc-900 transition flex items-center justify-center gap-2 text-xs text-zinc-400 font-mono uppercase tracking-wider group"
+            >
+                <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
+                Open Pale Archive
+            </button>
         </div>
       </div>
 
-      {/* Chat Area */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col relative">
-          {/* Header (Mobile) */}
-          <div className="md:hidden h-14 border-b border-zinc-800 flex items-center px-4 justify-end bg-black z-20">
-              <span className="text-zinc-500 font-mono text-xs">NEXUS::OMNI</span>
-          </div>
+        <div className="absolute inset-0 cyber-grid z-0 pointer-events-none opacity-30"></div>
 
-          {/* Messages List */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide">
-              <div className="max-w-4xl mx-auto">
-                  {messages.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center opacity-30 mt-20 select-none pointer-events-none">
-                          <BrainCircuit size={64} className="text-emerald-900 mb-6 animate-pulse" />
-                          <h2 className="text-2xl font-bold text-zinc-700 font-mono tracking-tighter">NEXUS IS LISTENING</h2>
-                          <p className="text-zinc-600 font-mono text-xs mt-2 uppercase tracking-widest">225 Clusters Awaiting Input</p>
-                      </div>
-                  ) : (
-                      messages.map(msg => (
-                          <ChatMessage 
-                            key={msg.id} 
-                            message={msg} 
-                            onEdit={handleEditMessage} 
-                            onViewMindMap={handleOpenMindMap}
-                          />
-                      ))
-                  )}
-                  <div ref={messagesEndRef} />
-              </div>
-          </div>
+        {/* Chat Header */}
+        <header className="h-16 flex items-center justify-between px-6 md:px-10 bg-gradient-to-b from-black via-black/90 to-transparent z-20 pointer-events-none">
+            <div className="pointer-events-auto"></div>
+            <div className="flex items-center gap-4 ml-auto pointer-events-auto">
+                <div className={`
+                    px-3 py-1 rounded-full border text-[10px] font-mono uppercase tracking-wider flex items-center gap-2
+                    ${stage !== ProcessingStage.IDLE 
+                        ? 'bg-amber-900/20 border-amber-500/30 text-amber-400 animate-pulse' 
+                        : 'bg-zinc-900/50 border-zinc-800 text-zinc-500'}
+                `}>
+                    <div className={`w-1.5 h-1.5 rounded-full ${stage !== ProcessingStage.IDLE ? 'bg-amber-400' : 'bg-zinc-600'}`}></div>
+                    {stage === ProcessingStage.IDLE ? 'Omni-Architect Dormant' : stage}
+                </div>
+            </div>
+        </header>
+
+        {/* Messages Container */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide z-10">
+            <div className="max-w-4xl mx-auto space-y-8 pb-20">
+                {messages.length === 0 && (
+                    <div className="h-[60vh] flex flex-col items-center justify-center text-center opacity-100 animate-in fade-in duration-700">
+                        <div className="relative w-28 h-28 mb-8 flex items-center justify-center">
+                             <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl animate-pulse"></div>
+                             <Sparkles size={64} className="text-amber-400 relative z-10" />
+                             <div className="absolute inset-0 border border-zinc-800 rounded-full animate-[spin_20s_linear_infinite]"></div>
+                             <div className="absolute inset-2 border border-dashed border-zinc-700 rounded-full animate-[spin_25s_linear_infinite_reverse]"></div>
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-zinc-600 mb-4 font-arabic">
+                            NEXUS: OMNI-ARCHITECT
+                        </h2>
+                        <p className="text-zinc-500 max-w-lg leading-relaxed text-sm md:text-base">
+                            بروتوكول التكوين نشط.
+                            <br/>
+                            نحن الآن نرى 100 مسار لكل لحظة.
+                            <br/><br/>
+                            <span className="font-mono text-xs text-amber-400 uppercase tracking-widest bg-amber-950/30 px-3 py-1.5 rounded border border-amber-500/20">
+                                225 Clusters Synced
+                            </span>
+                        </p>
+                    </div>
+                )}
+                {messages.map((msg) => (
+                    <ChatMessage 
+                      key={msg.id} 
+                      message={msg} 
+                      onEdit={msg.role === 'user' ? handleEditMessage : undefined} 
+                      onViewMindMap={msg.isThinking ? handleOpenMindMap : undefined}
+                      onPlayAudio={msg.role === 'model' && !msg.isThinking ? (audio) => handleGenerateAudio(msg.content, msg.id) : msg.audioData ? () => playAudio(msg.audioData!) : undefined}
+                      isPlaying={isPlaying && audioSourceRef.current !== null}
+                    />
+                ))}
+                <div ref={messagesEndRef} />
+            </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 md:p-6 bg-black/80 backdrop-blur-xl border-t border-zinc-800/50 z-30">
+            <div className="max-w-4xl mx-auto">
+                
+                {selectedFiles.length > 0 && (
+                    <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-hide">
+                        {selectedFiles.map((file) => (
+                            <div key={file.id} className="flex items-center gap-2 bg-zinc-900 border border-zinc-700 rounded-lg pl-3 pr-2 py-1.5">
+                                <div className="p-1 bg-zinc-800 rounded">
+                                    <FileIcon size={12} className="text-amber-500" />
+                                </div>
+                                <span className="text-xs text-zinc-300 max-w-[150px] truncate font-mono">{file.name}</span>
+                                <button 
+                                    onClick={() => removeFile(file.id)}
+                                    className="p-1 hover:bg-red-500/20 hover:text-red-400 rounded text-zinc-500 transition"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-amber-500 to-emerald-600 rounded-xl opacity-20 group-hover:opacity-50 blur transition duration-500"></div>
+                    
+                    <div className="relative bg-[#09090b] rounded-xl flex items-center p-2 pr-4 border border-zinc-800 focus-within:border-amber-900/50 transition-colors">
+                        
+                        <input 
+                            type="file" 
+                            multiple 
+                            ref={fileInputRef}
+                            className="hidden"
+                            onChange={handleFileSelect}
+                        />
+                        
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-3 text-zinc-500 hover:text-amber-400 transition rounded-lg hover:bg-zinc-900"
+                            title="Attach Reality Fragments"
+                        >
+                            <Paperclip size={20} />
+                        </button>
+                        
+                        <input 
+                            type="text" 
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            placeholder="اكتب لتبدأ محاكاة 100 جدول زمني..."
+                            className="flex-1 bg-transparent text-zinc-100 placeholder-zinc-600 px-3 py-3 focus:outline-none font-arabic"
+                            disabled={stage !== ProcessingStage.IDLE}
+                            autoComplete="off"
+                        />
+                        
+                        <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+                             <span className="text-[10px] font-mono text-zinc-600 hidden md:inline-block">INVOKE</span>
+                             <button 
+                                onClick={handleSend}
+                                disabled={(!input.trim() && selectedFiles.length === 0) || stage !== ProcessingStage.IDLE}
+                                className={`
+                                    w-10 h-10 rounded-lg flex items-center justify-center transition-all
+                                    ${(input.trim() || selectedFiles.length > 0) && stage === ProcessingStage.IDLE 
+                                        ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(245,158,11,0.5)] hover:bg-amber-500' 
+                                        : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'}
+                                `}
+                            >
+                                {stage !== ProcessingStage.IDLE ? (
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <Send size={18} className="rtl:rotate-180" />
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
     </div>
   );

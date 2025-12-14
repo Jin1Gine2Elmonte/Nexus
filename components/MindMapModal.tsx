@@ -42,7 +42,7 @@ const MindMapModal: React.FC<MindMapModalProps> = ({ isOpen, onClose, thoughtCon
         y: 50, 
         size: 25, 
         type: 'core', 
-        opacity: 1, 
+        opacity: 1,
         pulseDelay: 0 
       });
 
