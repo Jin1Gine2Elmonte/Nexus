@@ -1,9 +1,20 @@
-app = "nexus-omni-core" # اسم التطبيق في Fly.io
+app = "nexus-p9gpsa"
+primary_region = "fra"
 
 [build]
-  builder = "heroku/buildpacks:nodejs"
+  dockerfile = "Dockerfile"
 
-[[services]]
-  internal_port = 3333
-  protocol = "tcp"
-  ports = ["80", "443"]
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
