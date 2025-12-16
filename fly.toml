@@ -1,0 +1,9 @@
+app = "nexus-omni-core" # اسم التطبيق في Fly.io
+
+[build]
+  builder = "heroku/buildpacks:nodejs"
+
+[[services]]
+  internal_port = 3333
+  protocol = "tcp"
+  ports = ["80", "443"]
