@@ -1,20 +1,18 @@
-# Use official Node.js LTS
-FROM node:20-slim
+FROM node:20-alpine
 
-# Create app directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files first (better cache)
+COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm install --production
+RUN npm install --omit=dev
 
-# Copy the rest of the app
+# Copy the rest of the source
 COPY . .
 
-# Expose the port Fly will use
-EXPOSE 3333
+# Fly will inject PORT, but default to 8080
+ENV PORT=8080
 
-# Start Nexus
-CMD ["node", "nexus_server.js"]
+EXPOSE 8080
+
+CMD ["node", "src/nexus_server.js"]
