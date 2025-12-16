@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, Cloud, Database, RefreshCw, Trash2, HardDrive, Mic, Volume2 } from 'lucide-react';
+import { Send, Sparkles, Activity, Settings, Terminal as TerminalIcon, Menu, X, Paperclip, File as FileIcon, Download, Code, Cloud, Database, RefreshCw, Trash2, HardDrive, Mic, Volume2, Upload, UserCog, Save, ArrowDownToLine, Share2 } from 'lucide-react';
 import NeuralGrid from './components/NeuralGrid';
 import ChatMessage from './components/ChatMessage';
 import MindMapModal from './components/MindMapModal';
+import HostLinkModal from './components/HostLinkModal';
 import { Message, ProcessingStage, LogEntry, Attachment, SyncStatus } from './types';
 import { generateOmniResponse, generateAudioBriefing } from './services/geminiService';
-import { loadLocalMemory, saveLocalMemory, clearLocalMemory, initGoogleDrive, signInToDrive, saveToDrive } from './services/storageService';
+import { loadLocalMemory, saveLocalMemory, clearLocalMemory, initGoogleDrive, signInToDrive, saveToDrive, loadFromDrive } from './services/storageService';
 
 const MOCK_LOGS = [
   "System Boot: Nexus Omni-Architect v225.0 (Prismatic Edition)",
@@ -33,8 +34,9 @@ const App: React.FC = () => {
       isSyncing: false
   });
 
-  // Mind Map Modal State
+  // Modals State
   const [isMindMapOpen, setIsMindMapOpen] = useState(false);
+  const [isHostLinkOpen, setIsHostLinkOpen] = useState(false);
   const [mindMapContent, setMindMapContent] = useState('');
   
   // Audio State
@@ -45,6 +47,7 @@ const App: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   // --- INITIALIZATION & MEMORY LOADING ---
   
@@ -252,17 +255,43 @@ const App: React.FC = () => {
       }
   };
 
+  // --- SYNC & IO LOGIC ---
+
   const handleCloudConnect = () => {
+      // Force account selection for "Switch Account" behavior
       if (!process.env.REACT_APP_GOOGLE_CLIENT_ID) {
-          addLog("WARNING: Neural Cloud Link requires CLIENT_ID. Check Config.", 'warn');
-          addLog("Simulating Neural Handshake...", 'info');
+          addLog("WARNING: No Client ID. Cloud features in Simulation Mode.", 'warn');
           setTimeout(() => {
              setSyncStatus(prev => ({ ...prev, isSynced: true, cloudProvider: 'none' })); 
-             addLog("Neural Link: Local Simulation Active.", 'success');
+             addLog("Neural Link: Simulation Active.", 'success');
           }, 1000);
           return;
       }
       signInToDrive();
+  };
+
+  const handleCloudPull = async () => {
+      if (syncStatus.cloudProvider === 'none') {
+          addLog("Simulation Mode: Cannot pull from real Cloud.", 'warn');
+          return;
+      }
+      
+      setSyncStatus(prev => ({ ...prev, isSyncing: true }));
+      addLog("Initiating Cloud Downlink Protocol...", 'info');
+      try {
+          const cloudMessages = await loadFromDrive();
+          if (cloudMessages && Array.isArray(cloudMessages)) {
+              setMessages(cloudMessages);
+              saveLocalMemory(cloudMessages);
+              addLog(`Cloud Sync Complete: ${cloudMessages.length} fragments restored.`, 'success');
+          } else {
+              addLog("Cloud Archive Empty or Inaccessible.", 'warn');
+          }
+      } catch (e) {
+          addLog("Cloud Downlink Failed.", 'error');
+      } finally {
+          setSyncStatus(prev => ({ ...prev, isSyncing: false, lastSyncTime: Date.now() }));
+      }
   };
   
   const handleClearMemory = () => {
@@ -271,6 +300,44 @@ const App: React.FC = () => {
           setMessages([]);
           addLog("Memory Wipe Complete. Tabula Rasa.", 'error');
       }
+  };
+
+  const handleExportLocal = () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(messages, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "nexus_omni_memory.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      addLog("Memory Exported to Local Storage Crystal.", 'success');
+  };
+
+  const handleImportLocalClick = () => {
+      importInputRef.current?.click();
+  };
+
+  const handleImportLocalFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          try {
+              const parsed = JSON.parse(event.target?.result as string);
+              if (Array.isArray(parsed)) {
+                  setMessages(parsed);
+                  saveLocalMemory(parsed);
+                  addLog(`Local Import Success: ${parsed.length} fragments loaded.`, 'success');
+              } else {
+                  throw new Error("Invalid Format");
+              }
+          } catch (err) {
+              addLog("Import Failed: Corrupted Memory Crystal.", 'error');
+          }
+      };
+      reader.readAsText(file);
+      if (importInputRef.current) importInputRef.current.value = '';
   };
 
   const handleDownloadPythonCore = () => {
@@ -382,8 +449,6 @@ st.write("Python Core Extracted.")
             setStage(ProcessingStage.IDLE);
             addLog("Reality successfully rendered.", 'success');
             
-            // Auto-trigger Audio for short responses if requested? No, keep manual for "NotebookLM" feel.
-
         } catch (error) {
             console.error(error);
             setStage(ProcessingStage.IDLE);
@@ -406,6 +471,14 @@ st.write("Python Core Extracted.")
         onClose={() => setIsMindMapOpen(false)} 
         thoughtContent={mindMapContent} 
       />
+      
+      <HostLinkModal
+        isOpen={isHostLinkOpen}
+        onClose={() => setIsHostLinkOpen(false)}
+      />
+
+      {/* Hidden Inputs */}
+      <input type="file" ref={importInputRef} onChange={handleImportLocalFile} accept=".json" className="hidden" />
 
       <button 
         className="md:hidden fixed top-4 left-4 z-50 p-2 bg-zinc-900 rounded-lg border border-zinc-800 text-purple-500"
@@ -461,31 +534,68 @@ st.write("Python Core Extracted.")
                  {/* Local Storage Indicator */}
                  <div className="flex items-center justify-between text-xs px-2 py-1 bg-zinc-900 rounded border border-zinc-800">
                      <span className="text-zinc-400 flex items-center gap-2">
-                         <HardDrive size={10} /> Local
+                         <HardDrive size={10} /> Local State
                      </span>
                      <span className="text-emerald-500 font-mono">ACTIVE</span>
                  </div>
 
-                 {/* Cloud Connect */}
+                 {/* Cloud Connect Status */}
                  {syncStatus.isSynced ? (
-                     <div className="flex items-center justify-between text-xs px-2 py-1 bg-emerald-900/10 rounded border border-emerald-500/20">
-                         <span className="text-emerald-400 flex items-center gap-2">
-                             <Cloud size={10} /> Google Drive
-                         </span>
-                         <span className="text-emerald-500 font-mono">LINKED</span>
+                     <div className="flex flex-col gap-1.5 mt-1 bg-emerald-900/10 p-2 rounded border border-emerald-500/20">
+                         <div className="flex items-center justify-between text-xs">
+                             <span className="text-emerald-400 flex items-center gap-2">
+                                 <Cloud size={10} /> Drive Linked
+                             </span>
+                             <span className="text-emerald-500 font-mono text-[10px]">READY</span>
+                         </div>
+                         {/* Cloud Actions */}
+                         <div className="grid grid-cols-2 gap-1 mt-1">
+                             <button 
+                                onClick={handleCloudPull}
+                                className="flex items-center justify-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] py-1 rounded border border-emerald-500/20 transition-colors"
+                                title="Pull latest from Cloud"
+                             >
+                                 <ArrowDownToLine size={10} /> Pull
+                             </button>
+                             <button 
+                                onClick={handleCloudConnect} 
+                                className="flex items-center justify-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] py-1 rounded border border-zinc-600 transition-colors"
+                                title="Switch Google Account"
+                             >
+                                 <UserCog size={10} /> Switch
+                             </button>
+                         </div>
                      </div>
                  ) : (
                      <button 
                         onClick={handleCloudConnect}
-                        className="w-full py-1.5 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded text-[10px] text-zinc-300 transition-colors uppercase font-mono"
+                        className="w-full py-1.5 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded text-[10px] text-zinc-300 transition-colors uppercase font-mono mt-1"
                      >
-                        <Cloud size={10} /> Connect Neural Cloud
+                        <Cloud size={10} /> Connect Drive
                      </button>
                  )}
+
+                 {/* Import / Export Controls */}
+                 <div className="grid grid-cols-2 gap-2 mt-1 pt-2 border-t border-zinc-800/50">
+                     <button 
+                        onClick={handleExportLocal}
+                        className="flex flex-col items-center justify-center gap-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded text-[10px] text-zinc-400 hover:text-amber-400 transition"
+                     >
+                         <Download size={12} />
+                         <span>Export JSON</span>
+                     </button>
+                     <button 
+                        onClick={handleImportLocalClick}
+                        className="flex flex-col items-center justify-center gap-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded text-[10px] text-zinc-400 hover:text-emerald-400 transition"
+                     >
+                         <Upload size={12} />
+                         <span>Import JSON</span>
+                     </button>
+                 </div>
                  
                  <button 
                      onClick={handleClearMemory}
-                     className="w-full mt-1 py-1 flex items-center justify-center gap-1 text-[10px] text-red-900/50 hover:text-red-400 hover:bg-red-900/10 rounded transition-colors uppercase font-mono"
+                     className="w-full mt-2 py-1 flex items-center justify-center gap-1 text-[10px] text-red-900/50 hover:text-red-400 hover:bg-red-900/10 rounded transition-colors uppercase font-mono"
                  >
                      <Trash2 size={10} /> Purge Local Data
                  </button>
@@ -533,6 +643,16 @@ st.write("Python Core Extracted.")
         </div>
 
         <div className="mt-auto pt-4 border-t border-zinc-800 flex flex-col gap-2">
+             {/* THE NEW SOVEREIGN BUTTON */}
+            <button 
+                onClick={() => setIsHostLinkOpen(true)}
+                className="w-full py-2.5 bg-amber-900/20 border border-amber-500/20 rounded hover:bg-amber-900/30 hover:border-amber-500/40 transition flex items-center justify-center gap-2 text-xs text-amber-500 font-mono uppercase tracking-wider group relative overflow-hidden"
+            >
+                <div className="absolute inset-0 bg-amber-500/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                <Share2 size={14} className="animate-pulse" />
+                <span className="relative z-10">Deploy Omni-Port (MCP/Web)</span>
+            </button>
+
             <button 
                 onClick={handleDownloadPythonCore}
                 className="w-full py-2.5 bg-zinc-900/50 border border-zinc-800 rounded hover:bg-zinc-800 hover:text-amber-400 transition flex items-center justify-center gap-2 text-xs text-zinc-500 font-mono uppercase tracking-wider group"

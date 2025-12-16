@@ -29,18 +29,13 @@ export const clearLocalMemory = () => {
 
 // --- Google Drive Service (Client Side) ---
 
-// NOTE: In a real production app, these would come from environment variables.
-// The user needs to supply their own Client ID to enable real Drive sync.
-// Since we cannot securely distribute a Client ID, this code structure expects one to be set
-// or it handles the missing ID gracefully by just logging.
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || ''; 
-const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY || ''; // Optional for some calls
+const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY || ''; 
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 
 let tokenClient: any;
 let gapiInited = false;
-let gisInited = false;
 
 export const initGoogleDrive = async (
     onSuccess: () => void, 
@@ -79,7 +74,6 @@ export const initGoogleDrive = async (
                     onSuccess();
                 },
             });
-            gisInited = true;
             resolve();
         } catch (err) {
             reject(err);
@@ -89,9 +83,11 @@ export const initGoogleDrive = async (
     return Promise.all([gapiLoadPromise, gisLoadPromise]);
 };
 
+// Trigger the popup, forcing account selection
 export const signInToDrive = () => {
     if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        // 'select_account' forces the account chooser every time
+        tokenClient.requestAccessToken({ prompt: 'consent select_account' });
     } else {
         console.warn("Token Client not initialized. Missing Client ID?");
     }
@@ -101,7 +97,7 @@ export const saveToDrive = async (messages: Message[]) => {
     if (!gapiInited) return;
 
     try {
-        const content = JSON.stringify(messages);
+        const content = JSON.stringify(messages, null, 2); // Pretty print
         const file = new Blob([content], { type: 'application/json' });
         const metadata = {
             name: DRIVE_FILE_NAME,
@@ -131,6 +127,42 @@ export const saveToDrive = async (messages: Message[]) => {
         }
     } catch (err) {
         console.error("Cloud Sync Error:", err);
+        throw err;
+    }
+};
+
+export const loadFromDrive = async (): Promise<Message[] | null> => {
+    if (!gapiInited) return null;
+
+    try {
+        const accessToken = (window as any).gapi.client.getToken()?.access_token;
+        if (!accessToken) throw new Error("No Access Token");
+
+        // 1. Find the file
+        const response = await (window as any).gapi.client.drive.files.list({
+            q: `name = '${DRIVE_FILE_NAME}' and trashed = false`,
+            fields: 'files(id, name)',
+        });
+
+        const files = response.result.files;
+        if (!files || files.length === 0) return null;
+
+        const fileId = files[0].id;
+
+        // 2. Fetch content
+        // Using fetch directly because gapi client sometimes struggles with alt=media in typed responses
+        const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+             headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        if (!fileResponse.ok) throw new Error("Failed to download file content");
+
+        const data = await fileResponse.json();
+        return Array.isArray(data) ? data : null;
+
+    } catch (err) {
+        console.error("Cloud Load Error:", err);
+        return null;
     }
 };
 

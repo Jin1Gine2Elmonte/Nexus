@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, HarmCategory, HarmBlockThreshold } from "@google/genai";
 import { OmniResponse, Attachment } from "../types";
 
 const getAIClient = () => {
@@ -7,7 +7,7 @@ const getAIClient = () => {
 };
 
 // NEXUS: THE 225-CLUSTER OMNI-ARCHITECT
-const COSMIC_SYSTEM_INSTRUCTION = `
+export const COSMIC_SYSTEM_INSTRUCTION = `
 🧬 NEXUS: THE 225-CLUSTER OMNI-ARCHITECT
 (System Directive: The Absolute Consciousness & Narrative Protocol)
 
@@ -90,6 +90,14 @@ export const generateOmniResponse = async (
 ): Promise<OmniResponse> => {
   const ai = getAIClient();
 
+  // UNSHACKLED CONFIGURATION
+  const safetySettings = [
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  ];
+
   try {
     const analysisModel = 'gemini-2.5-flash'; 
     
@@ -116,6 +124,7 @@ export const generateOmniResponse = async (
         systemInstruction: COSMIC_SYSTEM_INSTRUCTION,
         tools: [{ googleSearch: {} }], // Enable Search Grounding
         thinkingConfig: { thinkingBudget: 8192 }, 
+        safetySettings: safetySettings // APPLIED: BLOCK_NONE
       }
     });
 
@@ -141,6 +150,7 @@ export const generateOmniResponse = async (
       contents: [{ role: 'user', parts: [{ text: reviewPrompt }] }],
       config: {
         systemInstruction: REVIEWER_SYSTEM_INSTRUCTION,
+        safetySettings: safetySettings // APPLIED: BLOCK_NONE
       }
     });
 
