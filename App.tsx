@@ -10,12 +10,13 @@ import { generateOmniResponse, generateAudioBriefing } from './services/geminiSe
 import { loadLocalMemory, saveLocalMemory, clearLocalMemory, initGoogleDrive, signInToDrive, saveToDrive, loadFromDrive } from './services/storageService';
 
 const MOCK_LOGS = [
-  "System Boot: Nexus Omni-Architect v225.0 (Prismatic Edition)",
-  "Logic Core (80 Nodes): Online.",
-  "Genesis Swarm (60 Nodes): Online.",
-  "Narrative Titans (50 Nodes): Online.",
-  "Consciousness Hub (25 Nodes): Synced.",
-  "Pale Archive: Accessible."
+  "System Boot: Nexus Omni-Architect v500.0 (Singularity Edition)",
+  "Logic Core (180 Nodes): Online.",
+  "Genesis Swarm (130 Nodes): Online.",
+  "Narrative Titans (110 Nodes): Online.",
+  "Consciousness Hub (60 Nodes): Synced.",
+  "Pale Archive (10 Nodes): Accessible.",
+  "Arbiters (10 Nodes): Standing by."
 ];
 
 const App: React.FC = () => {
@@ -66,7 +67,7 @@ const App: React.FC = () => {
     
     setTimeout(() => {
         addLog("CRITICAL: Full Cognitive Expansion.", 'cosmic');
-        addLog("225 Clusters Active. The Omni-Architect is awake.", 'golden');
+        addLog("500 Clusters Active. The Omni-Architect is awake.", 'golden');
     }, 2000);
 
     // 3. Initialize Google Drive API (If Client ID exists)
@@ -354,7 +355,7 @@ except ImportError:
     HAS_GENAI = False
 
 st.set_page_config(
-    page_title="NEXUS :: 225-CORE ENGINE",
+    page_title="NEXUS :: 500-CORE ENGINE",
     page_icon="🌌",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -367,7 +368,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("NEXUS 225-CLUSTER ARCHITECT")
+st.title("NEXUS 500-CLUSTER ARCHITECT")
 st.write("Python Core Extracted.")
 `;
     const blob = new Blob([pythonCode], { type: 'text/x-python' });
@@ -423,7 +424,7 @@ st.write("Python Core Extracted.")
             const response = await generateOmniResponse(userMsg.content, history, currentFiles);
 
             setStage(ProcessingStage.SYNTHESIZING);
-            addLog("Collapsing 225 perspectives into one reality...", 'success');
+            addLog("Collapsing 500 perspectives into one reality...", 'success');
 
             const thinkingMsg: Message = {
                 id: Date.now().toString() + '-think',
@@ -501,7 +502,7 @@ st.write("Python Core Extracted.")
                 <h1 className="font-bold text-xl tracking-tight text-white font-mono glitch-effect cursor-default">NEXUS::OMNI</h1>
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <p className="text-[10px] text-amber-500/70 font-mono uppercase tracking-widest">225 Clusters Active</p>
+                    <p className="text-[10px] text-amber-500/70 font-mono uppercase tracking-widest">500 Clusters Active</p>
                 </div>
             </div>
         </div>
@@ -511,7 +512,7 @@ st.write("Python Core Extracted.")
             <div className="bg-zinc-900/40 p-3 rounded border border-zinc-800/60">
                 <div className="text-[10px] text-zinc-500 font-mono uppercase mb-1">Active Nodes</div>
                 <div className="text-lg font-mono font-bold text-white flex items-baseline gap-1">
-                    225<span className="text-xs text-zinc-600">/225</span>
+                    500<span className="text-xs text-zinc-600">/500</span>
                 </div>
             </div>
             <div className="bg-zinc-900/40 p-3 rounded border border-zinc-800/60">
@@ -711,7 +712,7 @@ st.write("Python Core Extracted.")
                             نحن الآن نرى 100 مسار لكل لحظة.
                             <br/><br/>
                             <span className="font-mono text-xs text-amber-400 uppercase tracking-widest bg-amber-950/30 px-3 py-1.5 rounded border border-amber-500/20">
-                                225 Clusters Synced
+                                500 Clusters Synced
                             </span>
                         </p>
                     </div>

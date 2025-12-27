@@ -88,7 +88,7 @@ function doPost(e) {
 /**
  * 🧬 NEXUS OMNI-SERVER (HTTP/MCP Protocol)
  * ---------------------------------------------
- * A sovereign HTTP server exposing Nexus 225-Cluster as an MCP Tool.
+ * A sovereign HTTP server exposing Nexus 500-Cluster as an MCP Tool.
  * Compatible with ChatGPT MCP Connectors and Cloud Deployment.
  * 
  * SETUP:
@@ -124,7 +124,7 @@ const SYSTEM_INSTRUCTION = `;
 const server = new Server(
   {
     name: "nexus-omni-core",
-    version: "225.0.0",
+    version: "500.0.0",
   },
   {
     capabilities: {
@@ -138,7 +138,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "consult_nexus",
-        description: "Invoke the Nexus 225-Cluster Omni-Agent. Use this for deep narrative generation, complex logic analysis, or simulating the Omni-Persona.",
+        description: "Invoke the Nexus 500-Cluster Omni-Agent. Use this for deep narrative generation, complex logic analysis, or simulating the Omni-Persona.",
         inputSchema: {
           type: "object",
           properties: {
